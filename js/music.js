@@ -133,9 +133,202 @@
     return out;
   }
 
+  // Open-position voicings. frets: low E -> high e, -1 = muted. fingers: 0 = open/none.
+  const X = -1;
+  const OPEN = {
+    C: { frets: [X, 3, 2, 0, 1, 0], fingers: [0, 3, 2, 0, 1, 0] },
+    Cmaj7: { frets: [X, 3, 2, 0, 0, 0], fingers: [0, 3, 2, 0, 0, 0] },
+    C7: { frets: [X, 3, 2, 3, 1, 0], fingers: [0, 3, 2, 4, 1, 0] },
+    Cadd9: { frets: [X, 3, 2, 0, 3, 3], fingers: [0, 2, 1, 0, 3, 4] },
+    Csus2: { frets: [X, 3, 0, 0, 3, 3], fingers: [0, 2, 0, 0, 3, 4] },
+    Csus4: { frets: [X, 3, 3, 0, 1, 1], fingers: [0, 3, 4, 0, 1, 1] },
+    D: { frets: [X, X, 0, 2, 3, 2], fingers: [0, 0, 0, 1, 3, 2] },
+    Dm: { frets: [X, X, 0, 2, 3, 1], fingers: [0, 0, 0, 2, 3, 1] },
+    D7: { frets: [X, X, 0, 2, 1, 2], fingers: [0, 0, 0, 2, 1, 3] },
+    Dmaj7: { frets: [X, X, 0, 2, 2, 2], fingers: [0, 0, 0, 1, 2, 3] },
+    Dm7: { frets: [X, X, 0, 2, 1, 1], fingers: [0, 0, 0, 2, 1, 1] },
+    Dsus2: { frets: [X, X, 0, 2, 3, 0], fingers: [0, 0, 0, 1, 3, 0] },
+    Dsus4: { frets: [X, X, 0, 2, 3, 3], fingers: [0, 0, 0, 1, 3, 4] },
+    D5: { frets: [X, X, 0, 2, 3, X], fingers: [0, 0, 0, 1, 3, 0] },
+    E: { frets: [0, 2, 2, 1, 0, 0], fingers: [0, 2, 3, 1, 0, 0] },
+    Em: { frets: [0, 2, 2, 0, 0, 0], fingers: [0, 2, 3, 0, 0, 0] },
+    E7: { frets: [0, 2, 0, 1, 0, 0], fingers: [0, 2, 0, 1, 0, 0] },
+    Em7: { frets: [0, 2, 0, 0, 0, 0], fingers: [0, 2, 0, 0, 0, 0] },
+    Emaj7: { frets: [0, 2, 1, 1, 0, 0], fingers: [0, 3, 1, 2, 0, 0] },
+    Esus4: { frets: [0, 2, 2, 2, 0, 0], fingers: [0, 2, 3, 4, 0, 0] },
+    E5: { frets: [0, 2, 2, X, X, X], fingers: [0, 1, 2, 0, 0, 0] },
+    F: { frets: [X, X, 3, 2, 1, 1], fingers: [0, 0, 3, 2, 1, 1], alt: { frets: [1, 3, 3, 2, 1, 1], fingers: [1, 3, 4, 2, 1, 1] }, note: 'Easy F. The full barre version is 133211.' },
+    Fmaj7: { frets: [X, X, 3, 2, 1, 0], fingers: [0, 0, 3, 2, 1, 0] },
+    G: { frets: [3, 2, 0, 0, 0, 3], fingers: [2, 1, 0, 0, 0, 3] },
+    G7: { frets: [3, 2, 0, 0, 0, 1], fingers: [3, 2, 0, 0, 0, 1] },
+    Gmaj7: { frets: [3, 2, 0, 0, 0, 2], fingers: [3, 2, 0, 0, 0, 1] },
+    G6: { frets: [3, 2, 0, 0, 0, 0], fingers: [2, 1, 0, 0, 0, 0] },
+    Gsus4: { frets: [3, 3, 0, 0, 1, 3], fingers: [2, 3, 0, 0, 1, 4] },
+    A: { frets: [X, 0, 2, 2, 2, 0], fingers: [0, 0, 1, 2, 3, 0] },
+    Am: { frets: [X, 0, 2, 2, 1, 0], fingers: [0, 0, 2, 3, 1, 0] },
+    A7: { frets: [X, 0, 2, 0, 2, 0], fingers: [0, 0, 2, 0, 3, 0] },
+    Am7: { frets: [X, 0, 2, 0, 1, 0], fingers: [0, 0, 2, 0, 1, 0] },
+    Amaj7: { frets: [X, 0, 2, 1, 2, 0], fingers: [0, 0, 2, 1, 3, 0] },
+    Asus2: { frets: [X, 0, 2, 2, 0, 0], fingers: [0, 0, 1, 2, 0, 0] },
+    Asus4: { frets: [X, 0, 2, 2, 3, 0], fingers: [0, 0, 1, 2, 3, 0] },
+    A5: { frets: [X, 0, 2, 2, X, X], fingers: [0, 0, 1, 2, 0, 0] },
+    B7: { frets: [X, 2, 1, 2, 0, 2], fingers: [0, 2, 1, 3, 0, 4] },
+    Bm: { frets: [X, 2, 4, 4, 3, 2], fingers: [0, 1, 3, 4, 2, 1] },
+    Bm7: { frets: [X, 2, 0, 2, 0, 2], fingers: [0, 1, 0, 2, 0, 3] },
+  };
+
+  // Movable barre shapes, offsets relative to the root fret on string 6 (E) or 5 (A).
+  const E_SHAPES = {
+    maj: { o: [0, 2, 2, 1, 0, 0], f: [1, 3, 4, 2, 1, 1] },
+    m: { o: [0, 2, 2, 0, 0, 0], f: [1, 3, 4, 1, 1, 1] },
+    7: { o: [0, 2, 0, 1, 0, 0], f: [1, 3, 1, 2, 1, 1] },
+    m7: { o: [0, 2, 0, 0, 0, 0], f: [1, 3, 1, 1, 1, 1] },
+    maj7: { o: [0, X, 1, 1, 0, X], f: [1, 0, 3, 4, 2, 0] },
+    sus4: { o: [0, 2, 2, 2, 0, 0], f: [1, 2, 3, 4, 1, 1] },
+    5: { o: [0, 2, 2, X, X, X], f: [1, 3, 4, 0, 0, 0] },
+  };
+  const A_SHAPES = {
+    maj: { o: [X, 0, 2, 2, 2, 0], f: [0, 1, 3, 3, 3, 1] },
+    m: { o: [X, 0, 2, 2, 1, 0], f: [0, 1, 3, 4, 2, 1] },
+    7: { o: [X, 0, 2, 0, 2, 0], f: [0, 1, 3, 1, 4, 1] },
+    m7: { o: [X, 0, 2, 0, 1, 0], f: [0, 1, 3, 1, 2, 1] },
+    maj7: { o: [X, 0, 2, 1, 2, 0], f: [0, 1, 3, 2, 4, 1] },
+    sus2: { o: [X, 0, 2, 2, 0, 0], f: [0, 1, 3, 4, 1, 1] },
+    sus4: { o: [X, 0, 2, 2, 3, 0], f: [0, 1, 2, 3, 4, 1] },
+    '7sus4': { o: [X, 0, 2, 0, 3, 0], f: [0, 1, 3, 1, 4, 1] },
+    dim: { o: [X, 0, 1, 2, 1, X], f: [0, 1, 2, 4, 3, 0] },
+    m7b5: { o: [X, 0, 1, 0, 1, X], f: [0, 1, 3, 2, 4, 0] },
+    6: { o: [X, 0, 2, 2, 2, 2], f: [0, 1, 3, 3, 3, 3] },
+    5: { o: [X, 0, 2, 2, X, X], f: [0, 1, 3, 4, 0, 0] },
+  };
+  const FALLBACK = { 9: '7', 11: '7', 13: '7', add9: 'maj', madd9: 'm', m9: 'm7', maj9: 'maj7', dim7: 'dim', m6: 'm', aug: 'maj', '7sus4': 'sus4' };
+
+  function shapeAt(shape, rootFret) {
+    const frets = shape.o.map((o) => (o === X ? X : o + rootFret));
+    let fingers = shape.f.slice();
+    if (rootFret === 0) fingers = fingers.map((f, i) => (frets[i] <= 0 ? 0 : Math.max(1, f - 1)));
+    return { frets, fingers };
+  }
+
+  function generated(root, quality) {
+    const e = E_SHAPES[quality], a = A_SHAPES[quality];
+    const rE = mod12(root - 4), rA = mod12(root - 9);
+    const opts = [];
+    if (e) opts.push({ v: shapeAt(e, rE), r: rE, s: 'E' });
+    if (a) opts.push({ v: shapeAt(a, rA), r: rA, s: 'A' });
+    if (!opts.length) return null;
+    opts.sort((p, q) => p.r - q.r);
+    return opts[0].v;
+  }
+
+  const voicingCache = new Map();
+
+  /**
+   * Build a playable voicing for a chord symbol.
+   * Returns { name, root, quality, frets, fingers, notes (midi, without capo), pcs, barre, minFret, maxFret, difficulty, simplified, open }
+   */
+  function voicing(name, opts) {
+    const useAlt = !!(opts && opts.fullBarre);
+    const ck = name + (useAlt ? '|alt' : '');
+    if (voicingCache.has(ck)) return voicingCache.get(ck);
+    const c = parseChord(name);
+    if (!c) return null;
+    let quality = c.quality;
+    let simplified = c.simplified;
+    let src = OPEN[chordKey(c.root, quality)];
+    let isOpen = !!src;
+    if (src && useAlt && src.alt) src = src.alt;
+    let v = src ? { frets: src.frets.slice(), fingers: src.fingers.slice() } : generated(c.root, quality);
+    if (!v && FALLBACK[quality]) {
+      quality = FALLBACK[quality];
+      simplified = true;
+      src = OPEN[chordKey(c.root, quality)];
+      isOpen = !!src;
+      v = src ? { frets: src.frets.slice(), fingers: src.fingers.slice() } : generated(c.root, quality);
+    }
+    if (!v) return null;
+    const notes = [];
+    v.frets.forEach((f, i) => { if (f >= 0) notes.push(TUNING[i] + f); });
+    const fretted = v.frets.filter((f) => f > 0);
+    const minFret = fretted.length ? Math.min(...fretted) : 0;
+    const maxFret = fretted.length ? Math.max(...fretted) : 0;
+    const barre = findBarres(v.frets, v.fingers);
+    const fingerCount = new Set(v.fingers.filter((f) => f > 0)).size;
+    let difficulty = 1;
+    if (barre.some((b) => b.to - b.from >= 3)) difficulty = 3;
+    else if (fingerCount >= 4 || maxFret > 4 || barre.length) difficulty = 2;
+    const out = {
+      name, root: c.root, quality, bass: c.bass, flat: c.flat, frets: v.frets, fingers: v.fingers, notes,
+      pcs: INTERVALS[quality].map((i) => mod12(c.root + i)), barre, minFret, maxFret, difficulty, simplified,
+      open: isOpen && !barre.some((b) => b.to - b.from >= 3), note: src && src.note,
+      hasAlt: !!(OPEN[chordKey(c.root, quality)] || {}).alt,
+      qualityWord: QUALITY_WORDS[quality],
+    };
+    voicingCache.set(ck, out);
+    return out;
+  }
+
+  function findBarres(frets, fingers) {
+    const out = [];
+    for (let f = 1; f <= 4; f++) {
+      const idx = [];
+      fingers.forEach((ff, i) => { if (ff === f && frets[i] > 0) idx.push(i); });
+      if (idx.length < 2) continue;
+      const fr = frets[idx[0]];
+      if (!idx.every((i) => frets[i] === fr)) continue;
+      out.push({ finger: f, fret: fr, from: Math.min(...idx), to: Math.max(...idx) });
+    }
+    return out;
+  }
+
+  /** Beginner-friendly description of how to make a chord. */
+  function chordSteps(v) {
+    const steps = [];
+    const barres = v.barre || [];
+    barres.forEach((b) => {
+      steps.push({ finger: b.finger, text: `Lay your ${FINGER_NAMES[b.finger]} finger (${b.finger}) flat across strings ${stringNumber(b.to)}–${stringNumber(b.from)} at fret ${b.fret}` });
+    });
+    v.frets.forEach((f, i) => {
+      const fg = v.fingers[i];
+      if (f > 0 && fg && !barres.some((b) => b.finger === fg && b.fret === f)) {
+        steps.push({ finger: fg, text: `${capital(FINGER_NAMES[fg])} finger (${fg}) on string ${stringNumber(i)} (${STRING_NAMES[i]}), fret ${f}` });
+      }
+    });
+    steps.sort((a, b) => a.finger - b.finger);
+    const muted = v.frets.map((f, i) => (f < 0 ? stringNumber(i) : null)).filter((n) => n != null);
+    const firstPlayed = v.frets.findIndex((f) => f >= 0);
+    let strum;
+    if (!muted.length) strum = 'Strum all 6 strings.';
+    else if (muted.every((n) => n > stringNumber(firstPlayed))) strum = `Start your strum on string ${stringNumber(firstPlayed)} (${STRING_NAMES[firstPlayed]}). Skip string${muted.length > 1 ? 's' : ''} ${muted.sort((a, b) => b - a).join(', ')}.`;
+    else strum = `Don't let string${muted.length > 1 ? 's' : ''} ${muted.join(', ')} ring.`;
+    return { steps, strum };
+  }
+
+  function capital(s) { return s ? s[0].toUpperCase() + s.slice(1) : s; }
+
+  /** Pick a first-position fingering for a single melody note. */
+  function notePosition(midi, opts) {
+    const maxFret = (opts && opts.maxFret) || 5;
+    let best = null;
+    for (let s = 0; s < 6; s++) {
+      const f = midi - TUNING[s];
+      if (f < 0 || f > maxFret) continue;
+      if (!best || f < best.fret) best = { string: s, fret: f };
+    }
+    if (!best) {
+      for (let s = 5; s >= 0; s--) {
+        const f = midi - TUNING[s];
+        if (f >= 0 && f <= 15) { best = { string: s, fret: f }; break; }
+      }
+    }
+    if (!best) return null;
+    best.finger = best.fret === 0 ? 0 : Math.min(4, best.fret);
+    return best;
+  }
+
   Object.assign(GT, {
-    NOTES_SHARP, NOTES_FLAT, TUNING, STRING_NAMES, FINGER_NAMES, INTERVALS,
+    NOTES_SHARP, NOTES_FLAT, TUNING, STRING_NAMES, FINGER_NAMES, INTERVALS, OPEN,
     midiToFreq, freqToMidi, mod12, stringNumber, pcName, midiName, parseNote, setNaming,
-    parseChord, chordKey, chordDisplayName, transposeChordName,
+    parseChord, chordKey, chordDisplayName, transposeChordName, voicing, chordSteps, notePosition,
   });
 })(typeof window !== 'undefined' ? window : globalThis);
