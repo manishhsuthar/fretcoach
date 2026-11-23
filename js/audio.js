@@ -146,8 +146,113 @@
 
   function now() { return ctx ? ctx.currentTime : 0; }
 
+  // ------------------------------------------------------------- microphone
+  const mic = {
+    stream: null, source: null, timeAnalyser: null, freqAnalyser: null, inputGain: null,
+    running: false, listeners: new Set(), deviceId: null, gain: 1, gate: 0.012,
+    timeBuf: null, freqBuf: null, onset: null, raf: 0, lastFrame: null, error: null,
+    ignoreUntil: 0, levelPeak: 0, noiseFloor: 0.002,
+  };
+
+  async function startMic(deviceId) {
+    ensureContext();
+    if (mic.running && (!deviceId || deviceId === mic.deviceId)) return true;
+    stopMic();
+    const constraints = {
+      audio: {
+        echoCancellation: false, noiseSuppression: false, autoGainControl: false,
+        ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
+      },
+    };
+    try {
+      mic.stream = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (err) {
+      mic.error = err;
+      throw err;
+    }
+    mic.error = null;
+    mic.deviceId = deviceId || null;
+    mic.source = ctx.createMediaStreamSource(mic.stream);
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 65;
+    mic.inputGain = ctx.createGain();
+    mic.inputGain.gain.value = mic.gain;
+    mic.timeAnalyser = ctx.createAnalyser();
+    mic.timeAnalyser.fftSize = 2048;
+    mic.freqAnalyser = ctx.createAnalyser();
+    mic.freqAnalyser.fftSize = 16384;
+    mic.freqAnalyser.smoothingTimeConstant = 0.35;
+    mic.freqAnalyser.minDecibels = -110;
+    mic.freqAnalyser.maxDecibels = -10;
+    mic.source.connect(hp).connect(mic.inputGain);
+    mic.inputGain.connect(mic.timeAnalyser);
+    mic.inputGain.connect(mic.freqAnalyser);
+    mic.timeBuf = new Float32Array(mic.timeAnalyser.fftSize);
+    mic.freqBuf = new Float32Array(mic.freqAnalyser.frequencyBinCount);
+    mic.onset = GT.createOnsetDetector();
+    mic.running = true;
+    loop();
+    return true;
+  }
+
+  function stopMic() {
+    mic.running = false;
+    cancelAnimationFrame(mic.raf);
+    clearTimeout(mic.raf);
+    if (mic.stream) mic.stream.getTracks().forEach((t) => t.stop());
+    if (mic.source) mic.source.disconnect();
+    mic.stream = null;
+    mic.source = null;
+  }
+
+  function setMicGain(g) { mic.gain = g; if (mic.inputGain) mic.inputGain.gain.value = g; }
+  function setGate(g) { mic.gate = g; }
+
+  function loop() {
+    if (!mic.running) return;
+    const sr = ctx.sampleRate;
+    mic.timeAnalyser.getFloatTimeDomainData(mic.timeBuf);
+    const level = GT.rms(mic.timeBuf);
+    const t = ctx.currentTime;
+    // track the quiet-room level so the gate can adapt to it
+    if (level < mic.noiseFloor * 3) mic.noiseFloor = mic.noiseFloor * 0.995 + level * 0.005;
+    const gate = Math.max(mic.gate, mic.noiseFloor * 2.5);
+    const onset = mic.onset(level, t, gate);
+    mic.levelPeak = Math.max(level, mic.levelPeak * 0.96);
+    let pitch = null;
+    if (level > gate * 0.6) {
+      pitch = GT.detectPitch(mic.timeBuf, sr);
+      if (pitch) pitch.midi = GT.freqToMidi(pitch.freq);
+    }
+    let chroma = null;
+    let tuning = 0;
+    if (level > gate * 0.5) {
+      mic.freqAnalyser.getFloatFrequencyData(mic.freqBuf);
+      const res = GT.chromaFromSpectrum(mic.freqBuf, sr, mic.freqAnalyser.fftSize);
+      chroma = res.chroma;
+      tuning = res.tuning;
+    }
+    const frame = { time: t, level, gate, onset, pitch, chroma, tuning, ignored: t < mic.ignoreUntil };
+    mic.lastFrame = frame;
+    mic.listeners.forEach((fn) => { try { fn(frame); } catch (e) { console.error(e); } });
+    if (document.hidden) mic.raf = setTimeout(loop, 50);
+    else mic.raf = requestAnimationFrame(loop);
+  }
+
+  function onFrame(fn) { mic.listeners.add(fn); return () => mic.listeners.delete(fn); }
+  /** Ignore what the mic hears for a while (e.g. while our own reference sound plays). */
+  function ignoreMic(seconds) { if (ctx) mic.ignoreUntil = Math.max(mic.ignoreUntil, ctx.currentTime + seconds); }
+
+  async function listInputs() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return [];
+    const devs = await navigator.mediaDevices.enumerateDevices();
+    return devs.filter((d) => d.kind === 'audioinput');
+  }
+
   GT.audio = {
     ensureContext, pluck, strum, stopAll, click, now, setVolume,
+    startMic, stopMic, onFrame, setMicGain, setGate, ignoreMic, listInputs, mic,
     get ctx() { return ctx; },
   };
 })(typeof window !== 'undefined' ? window : globalThis);
