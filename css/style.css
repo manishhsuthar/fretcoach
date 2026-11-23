@@ -215,3 +215,54 @@ main#view {
 .tn.now { fill: var(--on-accent); }
 .tn-bg { fill: var(--surface); }
 .tn-bg.now { fill: var(--accent); }
+
+/* ------------------------------------------------------------------ home */
+.hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; align-items: stretch; }
+.hero-text { display: flex; flex-direction: column; justify-content: center; gap: 14px; padding-block: 12px; }
+.hero h1 { font-size: clamp(40px, 5.6vw, 78px); font-stretch: 125%; font-weight: 900; letter-spacing: -0.035em; line-height: 0.95; }
+.hero .lede { font-size: 19px; }
+.hero .row { margin-top: 10px; }
+.hero-try {
+  position: relative; border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 10px; overflow: hidden;
+  background: radial-gradient(120% 95% at 50% 105%, #f8cf72 0%, #f0a43a 32%, #c5601f 62%, #4a210e 88%, #24120a 100%);
+  color: #1d1206;
+}
+.hero-try .eyebrow { color: rgba(29, 18, 6, 0.7); }
+.hero-try .muted { color: rgba(255, 240, 220, 0.85); }
+.try-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.try-head .eyebrow, .try-head .muted { color: rgba(255, 236, 210, 0.85); }
+.try-name { font: 900 clamp(72px, 9vw, 120px)/0.9 var(--font-display); font-stretch: 118%; color: #fff6e8; letter-spacing: -0.03em; text-shadow: 0 3px 24px rgba(60, 20, 0, 0.35); }
+.try-sub { color: rgba(255, 240, 220, 0.92); font-weight: 700; }
+.hero-try .chroma .cb-track { background: rgba(30, 12, 4, 0.28); }
+.hero-try .chroma .cb i { background: #fff1d8; }
+.hero-try .chroma span { color: rgba(255, 240, 220, 0.85); }
+.hero-try .mic-box { background: rgba(20, 10, 4, 0.55); border-color: transparent; color: #fff3e2; }
+.setup { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.setup-item { display: flex; gap: 14px; align-items: center; padding: 16px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); text-decoration: none; color: var(--fg); }
+.setup-item p { color: var(--muted); font-size: 15px; }
+.si-n { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); font: 700 15px var(--font-mono); flex: none; color: var(--muted); }
+.setup-item.done .si-n { background: var(--ok); border-color: var(--ok); color: var(--bg); }
+.setup-item:hover { border-color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.stat { padding: 16px 18px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; position: relative; }
+.stat-n { font: 850 40px/1 var(--font-display); font-stretch: 112%; }
+.stat-n small { font-size: 20px; color: var(--muted); }
+.stat-l { color: var(--muted); font-size: 15px; }
+.spark { display: flex; align-items: flex-end; gap: 4px; height: 30px; margin-top: 6px; }
+.spark i { flex: 1; height: var(--h); background: color-mix(in srgb, var(--accent) 70%, transparent); border-radius: 2px 2px 0 0; min-height: 2px; }
+.song-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.song-card { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); text-decoration: none; color: var(--fg); min-width: 0; }
+.song-card:hover { border-color: var(--accent); }
+.song-card h3 { margin-top: 4px; }
+.song-card p { font-size: 15px; }
+.sc-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sc-chords { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; padding-top: 8px; }
+.group-h { margin: 8px 0 10px; font-size: 16px; font-family: var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.empty { padding: 40px; text-align: center; display: grid; gap: 14px; justify-items: center; color: var(--muted); }
+
+/* mic box */
+.mic-box { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 14px 16px; border-radius: var(--r); background: var(--surface); border: 1px dashed var(--line); }
+.mic-box p { flex: 1; min-width: 200px; }
+.mic-box .ico { width: 28px; height: 28px; color: var(--accent); }
+.mic-box.compact { padding: 10px 12px; }
+.mic-box[data-state="denied"], .mic-box[data-state="error"], .mic-box[data-state="insecure"] { border-color: var(--bad); }
