@@ -151,7 +151,7 @@
   const STRICTNESS = {
     relaxed: { min: 0.72, margin: 0.06, share: 0.42, variant: 0.07 },
     normal: { min: 0.8, margin: 0.03, share: 0.5, variant: 0.045 },
-    strict: { min: 0.86, margin: 0.0, share: 0.58, variant: 0.025 },
+    strict: { min: 0.84, margin: 0.015, share: 0.52, variant: 0.03 },
   };
 
   /**
