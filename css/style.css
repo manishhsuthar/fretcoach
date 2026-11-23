@@ -162,3 +162,56 @@ main#view {
 .f0 { fill: var(--f0); } .f1 { fill: var(--f1); } .f2 { fill: var(--f2); } .f3 { fill: var(--f3); } .f4 { fill: var(--f4); }
 .fdot { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: #fff; font: 700 14px/1 var(--font-mono); flex: none; background: var(--f0); }
 .fdot.f1 { background: var(--f1); } .fdot.f2 { background: var(--f2); } .fdot.f3 { background: var(--f3); } .fdot.f4 { background: var(--f4); }
+
+/* ------------------------------------------------------------- fretboard */
+.fb-wrap { width: 100%; min-width: 0; }
+.fb { width: 100%; height: auto; display: block; }
+.fb-inlay { fill: #efe7d2; opacity: 0.8; }
+.fb-nut { fill: #efe6cf; }
+.fb-capo { fill: #2b2d31; stroke: #8d8f93; stroke-width: 1.5; }
+.fb-capo-label { font: 700 13px var(--font-mono); fill: var(--accent-ink); letter-spacing: 0.08em; }
+.fb-num { font: 600 15px var(--font-mono); fill: var(--muted); }
+.fb-sname { font: 700 20px var(--font-display); fill: var(--fg); }
+.fb-snum { font: 600 13px var(--font-mono); fill: var(--muted); }
+.fb-string.warn { fill: var(--bad) !important; }
+.fb-dot { stroke: rgba(0, 0, 0, 0.25); stroke-width: 1.5; }
+.fb-dot.now { animation: dotPulse 1.4s ease-in-out infinite; }
+.fb-dot-label { font: 700 18px var(--font-mono); fill: #fff; pointer-events: none; }
+.fb-mute path { stroke: var(--bad); stroke-width: 3.4; stroke-linecap: round; fill: none; }
+.fb-open { fill: none; stroke: var(--fg); stroke-width: 2.8; }
+.fb-open-target { fill: color-mix(in srgb, var(--f0) 35%, transparent); stroke: var(--fg); stroke-width: 2.8; }
+.fb-open-target.now { animation: dotPulse 1.4s ease-in-out infinite; }
+.fb-open-label { font: 700 15px var(--font-mono); fill: var(--fg); }
+.fb-ghost { fill: none; stroke: #f3ead6; stroke-width: 2.4; stroke-dasharray: 5 4; opacity: 0.75; }
+.fb-ghost-open { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 4 3; }
+.fb-ghost-label { font: 700 11px var(--font-mono); fill: #f3ead6; letter-spacing: 0.04em; }
+@keyframes dotPulse { 0%, 100% { stroke: rgba(255, 255, 255, 0.15); stroke-width: 2; } 50% { stroke: rgba(255, 255, 255, 0.9); stroke-width: 6; } }
+
+/* chord box */
+.cbox { width: 100%; max-width: 170px; height: auto; display: block; }
+.cbox-name { font: 800 22px var(--font-display); fill: var(--fg); }
+.cbox-fret { stroke: var(--muted); stroke-width: 1.4; }
+.cbox-nut { fill: var(--fg); }
+.cbox-string { stroke: var(--fg); opacity: 0.85; }
+.cbox-x { font: 700 18px var(--font-body); fill: var(--bad); }
+.cbox-o { fill: none; stroke: var(--fg); stroke-width: 2; }
+.cbox-label { font: 700 12px var(--font-mono); fill: #fff; }
+.cbox-base { font: 700 13px var(--font-mono); fill: var(--muted); }
+
+/* hand */
+.hand { width: 100%; max-width: 220px; display: block; margin: 8px auto; }
+.hand-skin { fill: var(--surface-2); stroke: var(--line); stroke-width: 2; }
+.hand-thumb { fill: var(--f0); }
+.hand-num { font: 700 14px var(--font-mono); fill: #fff; }
+.hand .dim { opacity: 0.3; }
+
+/* tab */
+.tab { display: block; }
+.tab-line { stroke: var(--line); stroke-width: 1.5; }
+.tab-bar { stroke: var(--muted); stroke-width: 1.5; }
+.tab-sname { font: 700 12px var(--font-mono); fill: var(--muted); }
+.tn { font: 700 14px var(--font-mono); fill: var(--fg); }
+.tn.done { fill: var(--muted); }
+.tn.now { fill: var(--on-accent); }
+.tn-bg { fill: var(--surface); }
+.tn-bg.now { fill: var(--accent); }
