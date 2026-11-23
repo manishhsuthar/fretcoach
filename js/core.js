@@ -182,11 +182,13 @@
     return Math.abs(Math.abs(d) - 12) < 0.6;
   }
 
-  function addNormalized(acc, chroma) {
+  /** Add one frame's chroma (and its octave-resolved spectrum) to running sums, each frame weighted equally. */
+  function addNormalized(acc, chroma, accSemi, semi) {
     let s = 0;
     for (let i = 0; i < 12; i++) s += chroma[i];
     if (s <= 0) return false;
     for (let i = 0; i < 12; i++) acc[i] += chroma[i] / s;
+    if (accSemi && semi) for (let i = 0; i < semi.length; i++) accSemi[i] += semi[i] / s;
     return true;
   }
 
@@ -214,7 +216,7 @@
         const tgt = opts.target();
         if (!tgt || frame.ignored) { ev = null; return; }
         if (frame.onset) {
-          ev = { t0: frame.time, acc: new Float32Array(12), n: 0, votes: [], peak: frame.level, last: null, target: tgt };
+          ev = { t0: frame.time, acc: new Float32Array(12), semi: new Float32Array(GT.SEMI_N), n: 0, votes: [], peak: frame.level, last: null, target: tgt };
           if (opts.onStart) opts.onStart();
         }
         if (!ev) return;
@@ -223,15 +225,15 @@
         ev.peak = Math.max(ev.peak, frame.level);
         const quiet = frame.level < frame.gate * 0.8;
         if (tgt.kind === 'chord') {
-          if (dt >= 0.16 && frame.chroma && !quiet && addNormalized(ev.acc, frame.chroma)) ev.n++;
+          if (dt >= 0.16 && frame.chroma && !quiet && addNormalized(ev.acc, frame.chroma, ev.semi, frame.semi)) ev.n++;
           if (ev.n >= 4 && dt >= 0.3) {
-            const r = GT.matchChord(ev.acc, tgt.notes, tgt.pcs, S.strictness, tgt.v.frets, tgt.capo);
+            const r = GT.matchChord(ev.acc, tgt.notes, tgt.pcs, S.strictness, tgt.v.frets, tgt.capo, ev.semi);
             ev.last = r;
             if (r.ok) { finish(true, { match: r }); return; }
           }
           if (dt > 1.05 || (dt > 0.3 && quiet)) {
             if (ev.n < 4) { ev = null; return; } // a knock or very short sound: ignore
-            finish(false, { match: ev.last || GT.matchChord(ev.acc, tgt.notes, tgt.pcs, S.strictness, tgt.v.frets, tgt.capo) });
+            finish(false, { match: ev.last || GT.matchChord(ev.acc, tgt.notes, tgt.pcs, S.strictness, tgt.v.frets, tgt.capo, ev.semi) });
           }
         } else {
           if (dt >= 0.03 && frame.pitch && frame.pitch.clarity >= 0.85 && !quiet) ev.votes.push(frame.pitch.midi);

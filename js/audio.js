@@ -226,14 +226,16 @@
       if (pitch) pitch.midi = GT.freqToMidi(pitch.freq);
     }
     let chroma = null;
+    let semi = null;
     let tuning = 0;
     if (level > gate * 0.5) {
       mic.freqAnalyser.getFloatFrequencyData(mic.freqBuf);
       const res = GT.chromaFromSpectrum(mic.freqBuf, sr, mic.freqAnalyser.fftSize);
       chroma = res.chroma;
+      semi = res.semi;
       tuning = res.tuning;
     }
-    const frame = { time: t, level, gate, onset, pitch, chroma, tuning, ignored: t < mic.ignoreUntil };
+    const frame = { time: t, level, gate, onset, pitch, chroma, semi, tuning, ignored: t < mic.ignoreUntil };
     mic.lastFrame = frame;
     mic.listeners.forEach((fn) => { try { fn(frame); } catch (e) { console.error(e); } });
     if (document.hidden) mic.raf = setTimeout(loop, 50);

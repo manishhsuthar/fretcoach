@@ -450,7 +450,7 @@
       tp.raf = requestAnimationFrame(tick);
     }
 
-    function accFor(i) { return tp.acc[i] || (tp.acc[i] = { chroma: new Float32Array(12), n: 0, votes: [], loud: 0 }); }
+    function accFor(i) { return tp.acc[i] || (tp.acc[i] = { chroma: new Float32Array(12), semi: new Float32Array(GT.SEMI_N), n: 0, votes: [], loud: 0 }); }
 
     function onTimedFrame(frame) {
       if (!tp.playing || ps.mode !== 'timed' || frame.ignored) return;
@@ -463,7 +463,7 @@
       const a = accFor(i);
       if (loud) a.loud++;
       if (st.kind === 'chord') {
-        if (into >= 0.15 && loud && frame.chroma && App.addNormalized(a.chroma, frame.chroma)) a.n++;
+        if (into >= 0.15 && loud && frame.chroma && App.addNormalized(a.chroma, frame.chroma, a.semi, frame.semi)) a.n++;
       } else if (loud && frame.pitch && frame.pitch.clarity >= 0.85) {
         a.votes.push(frame.pitch.midi);
         const nx = C.steps[i + 1];
@@ -489,7 +489,7 @@
       if (st.kind === 'chord') {
         if (a && a.n >= 3) {
           const t = targetFor(i);
-          const r = GT.matchChord(a.chroma, t.notes, t.pcs, S.strictness, t.v.frets, t.capo);
+          const r = GT.matchChord(a.chroma, t.notes, t.pcs, S.strictness, t.v.frets, t.capo, a.semi);
           res = r.ok ? 'hit' : 'miss';
           info = { match: r, acc: a.chroma, target: t, peak: 1 };
         }

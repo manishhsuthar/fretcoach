@@ -2,6 +2,7 @@
 (function (root) {
   'use strict';
   const GT = (root.GT = root.GT || {});
+  const SEMI_N = 112; // midi 0..111 covers every guitar note and its low harmonics
 
   /** YIN pitch detector. buf: Float32Array time-domain. Returns {freq, clarity} or null. */
   function detectPitch(buf, sampleRate, opts) {
@@ -67,7 +68,8 @@
     let maxDb = -Infinity;
     for (let k = lo; k <= hi; k++) if (db[k] > maxDb) maxDb = db[k];
     const chroma = new Float32Array(12);
-    if (!isFinite(maxDb)) return { chroma, peaks: [], tuning: 0, maxDb };
+    const semi = new Float32Array(SEMI_N);
+    if (!isFinite(maxDb)) return { chroma, semi, peaks: [], tuning: 0, maxDb };
     const floorDb = maxDb - ((opts && opts.rangeDb) || 45);
     const peaks = [];
     for (let k = lo; k <= hi; k++) {
@@ -99,13 +101,36 @@
       const dev = m - r;
       const g = Math.exp(-(dev * dev) / (2 * 0.2 * 0.2));
       chroma[((r % 12) + 12) % 12] += pk.w * g;
+      if (r >= 0 && r < SEMI_N) semi[r] += pk.w * g;
     }
-    return { chroma, peaks, tuning, maxDb };
+    return { chroma, semi, peaks, tuning, maxDb };
   }
 
   // ------------------------------------------------------------ chord templates
   const HARMONICS = [1, 0.55, 0.4, 0.22, 0.15, 0.1];
   const templateCache = new Map();
+  const semiCache = new Map();
+
+  /** Expected energy per semitone (midi index) for a voicing, including harmonics. Keeps octave information. */
+  function semiTemplate(notes) {
+    const key = notes.join(',');
+    if (semiCache.has(key)) return semiCache.get(key);
+    const t = new Float32Array(SEMI_N);
+    for (const n of notes) {
+      for (let h = 1; h <= HARMONICS.length; h++) {
+        const m = Math.round(n + 12 * Math.log2(h));
+        if (m < SEMI_N) t[m] += HARMONICS[h - 1];
+      }
+    }
+    for (let i = 0; i < SEMI_N; i++) t[i] = Math.pow(t[i], 0.7);
+    semiCache.set(key, t);
+    return t;
+  }
+  function cosineN(a, b) {
+    let ab = 0, aa = 0, bb = 0;
+    for (let i = 0; i < a.length; i++) { ab += a[i] * b[i]; aa += a[i] * a[i]; bb += b[i] * b[i]; }
+    return aa > 0 && bb > 0 ? ab / Math.sqrt(aa * bb) : 0;
+  }
 
   /** Expected chroma for a list of midi notes, including harmonics. */
   function templateFromNotes(notes) {
@@ -149,9 +174,9 @@
   }
 
   const STRICTNESS = {
-    relaxed: { min: 0.72, margin: 0.06, share: 0.42, variant: 0.07 },
-    normal: { min: 0.8, margin: 0.03, share: 0.5, variant: 0.045 },
-    strict: { min: 0.84, margin: 0.015, share: 0.52, variant: 0.03 },
+    relaxed: { min: 0.72, margin: 0.06, share: 0.42, variant: 0.07, semiVariant: 0.045 },
+    normal: { min: 0.8, margin: 0.03, share: 0.5, variant: 0.045, semiVariant: 0.025 },
+    strict: { min: 0.84, margin: 0.015, share: 0.52, variant: 0.03, semiVariant: 0.012 },
   };
 
   /**
@@ -174,7 +199,7 @@
         fr[s] = nf;
         const notes = [];
         fr.forEach((x, i) => { if (x >= 0) notes.push(GT.TUNING[i] + x + capo); });
-        out.push({ string: s, kind, fret: f, playedFret: nf, template: templateFromNotes(notes) });
+        out.push({ string: s, kind, fret: f, playedFret: nf, template: templateFromNotes(notes), semi: semiTemplate(notes) });
       });
     });
     variantCache.set(key, out);
@@ -185,7 +210,7 @@
    * Compare an observed chroma with the expected chord voicing.
    * expectedNotes: midi notes actually sounding (capo applied).
    */
-  function matchChord(chroma, expectedNotes, expectedPcs, strictness, frets, capo) {
+  function matchChord(chroma, expectedNotes, expectedPcs, strictness, frets, capo, semi) {
     const s = STRICTNESS[strictness] || STRICTNESS.normal;
     const tExp = templateFromNotes(expectedNotes);
     const simExpected = cosine(chroma, tExp);
@@ -214,11 +239,13 @@
     let mistake = null;
     if (frets) {
       let worst = -1;
+      const useSemi = semi && semi.some((x) => x > 0);
+      const base = useSemi ? cosineN(semi, semiTemplate(expectedNotes)) : simExpected;
       mistakeVariants(frets, expectedPcs, capo || 0).forEach((v) => {
-        const d = cosine(chroma, v.template) - simExpected;
+        const d = (useSemi ? cosineN(semi, v.semi) : cosine(chroma, v.template)) - base;
         if (d > worst) { worst = d; mistake = v; }
       });
-      if (worst > s.variant) ok = false;
+      if (worst > (useSemi ? s.semiVariant : s.variant)) ok = false;
       else mistake = null;
     }
     // quality 0..1 for meters
@@ -278,6 +305,7 @@
   }
 
   Object.assign(GT, {
+    semiTemplate, cosineN, SEMI_N,
     detectPitch, rms, chromaFromSpectrum, templateFromNotes, cosine, matchChord, diagnoseChord,
     createOnsetDetector, chordVocabulary: vocabulary, STRICTNESS,
   });
