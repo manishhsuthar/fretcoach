@@ -238,10 +238,10 @@
         p.push(`<line x1="${bx}" y1="${y(5)}" x2="${bx}" y2="${y(0)}" class="tab-bar"/>`);
       }
       const x = left + i * o.colW + o.colW / 2;
-      const cls = i === current ? 'tab-note now' : i < current ? 'tab-note done' : 'tab-note';
+      const state = i === current ? 'now' : i < current ? 'done' : 'todo';
       const label = String(n.fret);
-      p.push(`<rect x="${x - 11}" y="${y(n.string) - 10}" width="22" height="20" rx="5" class="${cls}-bg"/>`);
-      p.push(`<text x="${x}" y="${y(n.string) + 5}" class="${cls}" text-anchor="middle">${label}</text>`);
+      p.push(`<rect x="${x - 12}" y="${y(n.string) - 10}" width="24" height="20" rx="5" class="tn-bg ${state}"/>`);
+      p.push(`<text x="${x}" y="${y(n.string) + 5}" class="tn ${state}" text-anchor="middle">${label}</text>`);
     });
     p.push('</svg>');
     return { svg: p.join(''), colX: (i) => left + i * o.colW + o.colW / 2 };
