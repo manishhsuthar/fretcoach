@@ -35,7 +35,7 @@
           <h1>${esc(song.title)}</h1>
           <p>${esc(song.artist || '')}${song.level ? ' · ' + App.LEVELS[song.level] : ''} · <span id="meter">${bpb}/4</span></p>
         </div>
-        <div class="seg" role="tablist" aria-label="Mode">
+        <div class="modes" role="tablist" aria-label="Mode">
           <button role="tab" data-mode="practice" title="Waits until you play each ${isMelody ? 'note' : 'chord'} right">Practice</button>
           <button role="tab" data-mode="timed" title="Keeps time with a metronome and scores you">Play along</button>
           <button role="tab" data-mode="listen" title="Hear how it should sound">Listen</button>
@@ -239,7 +239,7 @@
       if (kind === 'ok') return '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
       if (kind === 'bad') return '<svg viewBox="0 0 24 24"><path d="M12 7v6m0 4v.01"/></svg>';
       if (kind === 'listen') return '<span class="pulse"></span>';
-      return '<svg viewBox="0 0 24 24"><path d="M12 3v12m0 0a3 3 0 1 0 0 .01M9 21h6"/></svg>';
+      return '<svg viewBox="0 0 24 24" class="filled"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-2.1A7 7 0 0 0 19 12z"/></svg>';
     }
     function setPracticeStatus() {
       const st = curStep();
@@ -575,7 +575,7 @@
       ps.mode = m;
       ps.finished = false;
       el.results.hidden = true;
-      $$('.seg [data-mode]', main).forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === m)));
+      $$('.modes [data-mode]', main).forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === m)));
       main.querySelector('.player').dataset.current = m;
       el.go.hidden = m === 'practice';
       $('#backingWrap', main).hidden = m !== 'timed';
@@ -614,7 +614,7 @@
 
     // ------------------------------------------------------------ events
     main.addEventListener('click', (e) => {
-      const modeBtn = e.target.closest('.seg [data-mode]');
+      const modeBtn = e.target.closest('.modes [data-mode]');
       if (modeBtn) { setMode(modeBtn.dataset.mode); return; }
       const stepBtn = e.target.closest('[data-step]');
       if (stepBtn) {
