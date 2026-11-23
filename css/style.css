@@ -181,14 +181,14 @@ main#view {
 .fb-open { fill: none; stroke: var(--fg); stroke-width: 2.8; }
 .fb-open-target { fill: var(--accent); stroke: var(--fg); stroke-width: 2; }
 .fb-open-target.now { animation: dotPulse 1.4s ease-in-out infinite; }
-.fb-open-glow { fill: var(--accent); opacity: 0.45; }
+.fb-open-glow { fill: var(--accent); opacity: 0.6; }
 .fb-open-glow.now { animation: glow 1.4s ease-in-out infinite; }
 .fb-open-label { font: 700 15px var(--font-mono); fill: var(--on-accent); }
 .fb-ghost { fill: none; stroke: #f3ead6; stroke-width: 2.4; stroke-dasharray: 5 4; }
 .fb-ghost.later { opacity: 0.4; }
 .fb-ghost-open { fill: none; stroke: var(--muted); stroke-width: 2.2; stroke-dasharray: 4 3; }
 .fb-ghost-open.later { opacity: 0.45; }
-@keyframes glow { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.6; } }
+@keyframes glow { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.85; } }
 @keyframes dotPulse { 0%, 100% { stroke: rgba(255, 255, 255, 0.15); stroke-width: 2; } 50% { stroke: rgba(255, 255, 255, 0.9); stroke-width: 6; } }
 
 /* chord box */
