@@ -146,6 +146,37 @@ And it's [Am:3]been the [C:3]ruin of [D:3]many a poor [F:3]boy, and [Am:3]God, I
 [D7] [D7] [A7] [A7]
 [E7] [D7] [A7] [E7]`,
     },
+    // Melodies (single notes, first position)
+    {
+      id: 'mel-mary', title: 'Mary Had a Little Lamb', artist: 'Melody · G & B strings', level: 1, bpm: 90, beats: 4, type: 'melody',
+      tip: 'Only three notes: B (open), A (string 3, fret 2) and G (open), plus D (string 2, fret 3).',
+      melody: 'B3 A3 G3 A3 | B3 B3 B3:2 | A3 A3 A3:2 | B3 D4 D4:2 / B3 A3 G3 A3 | B3 B3 B3 B3 | A3 A3 B3 A3 | G3:4',
+    },
+    {
+      id: 'mel-twinkle', title: 'Twinkle, Twinkle (melody)', artist: 'Melody · G, B & e strings', level: 1, bpm: 92, beats: 4, type: 'melody',
+      tip: 'Stays within the first three frets.',
+      melody: 'G3 G3 D4 D4 | E4 E4 D4:2 | C4 C4 B3 B3 | A3 A3 G3:2 / D4 D4 C4 C4 | B3 B3 A3:2 | D4 D4 C4 C4 | B3 B3 A3:2 / G3 G3 D4 D4 | E4 E4 D4:2 | C4 C4 B3 B3 | A3 A3 G3:2',
+    },
+    {
+      id: 'mel-ode', title: 'Ode to Joy', artist: 'Beethoven · melody', level: 1, bpm: 96, beats: 4, type: 'melody',
+      tip: 'Mostly on the B string. Move one finger at a time.',
+      melody: 'B3 B3 C4 D4 | D4 C4 B3 A3 | G3 G3 A3 B3 | B3:1.5 A3:0.5 A3:2 / B3 B3 C4 D4 | D4 C4 B3 A3 | G3 G3 A3 B3 | A3:1.5 G3:0.5 G3:2 / A3 A3 B3 G3 | A3 B3:0.5 C4:0.5 B3 G3 | A3 B3:0.5 C4:0.5 B3 A3 | G3 A3 D3:2 / B3 B3 C4 D4 | D4 C4 B3 A3 | G3 G3 A3 B3 | A3:1.5 G3:0.5 G3:2',
+    },
+    {
+      id: 'mel-frere', title: 'Frère Jacques', artist: 'Traditional · melody', level: 1, bpm: 96, beats: 4, type: 'melody',
+      tip: 'A round: once you know it, play it with a friend starting two bars later.',
+      melody: 'G3 A3 B3 G3 | G3 A3 B3 G3 | B3 C4 D4:2 | B3 C4 D4:2 / D4:0.5 E4:0.5 D4:0.5 C4:0.5 B3 G3 | D4:0.5 E4:0.5 D4:0.5 C4:0.5 B3 G3 | G3 D3 G3:2 | G3 D3 G3:2',
+    },
+    {
+      id: 'mel-jingle', title: 'Jingle Bells (melody)', artist: 'Melody · G & B strings', level: 2, bpm: 104, beats: 4, type: 'melody',
+      tip: 'Lots of repeated B notes. Pluck each one clearly.',
+      melody: 'B3 B3 B3:2 | B3 B3 B3:2 | B3 D4 G3:1.5 A3:0.5 | B3:4 / C4 C4 C4:1.5 C4:0.5 | C4 B3 B3 B3:0.5 B3:0.5 | B3 A3 A3 B3 | A3:2 D4:2 / B3 B3 B3:2 | B3 B3 B3:2 | B3 D4 G3:1.5 A3:0.5 | B3:4 / C4 C4 C4 C4 | C4 B3 B3 B3:0.5 B3:0.5 | D4 D4 C4 A3 | G3:4',
+    },
+    {
+      id: 'mel-birthday', title: 'Happy Birthday (melody)', artist: 'Melody · 3/4 time', level: 2, bpm: 92, beats: 3, type: 'melody',
+      tip: 'Uses four strings. The high G is string 1, fret 3.',
+      melody: 'G3:0.75 G3:0.25 | A3 G3 C4 | B3:2 G3:0.75 G3:0.25 | A3 G3 D4 | C4:2 G3:0.75 G3:0.25 / G4 E4 C4 | B3 A3:2 | F4:0.75 F4:0.25 E4 C4 | D4 C4:2',
+    },
   ];
 
   // ------------------------------------------------------------- compiling
