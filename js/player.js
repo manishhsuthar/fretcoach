@@ -489,7 +489,7 @@
       if (st.kind === 'chord') {
         if (a && a.n >= 3) {
           const t = targetFor(i);
-          const r = GT.matchChord(a.chroma, t.notes, t.pcs, S.strictness);
+          const r = GT.matchChord(a.chroma, t.notes, t.pcs, S.strictness, t.v.frets, t.capo);
           res = r.ok ? 'hit' : 'miss';
           info = { match: r, acc: a.chroma, target: t, peak: 1 };
         }

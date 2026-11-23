@@ -149,16 +149,43 @@
   }
 
   const STRICTNESS = {
-    relaxed: { min: 0.72, margin: 0.06, share: 0.42 },
-    normal: { min: 0.8, margin: 0.03, share: 0.5 },
-    strict: { min: 0.86, margin: 0.0, share: 0.58 },
+    relaxed: { min: 0.72, margin: 0.06, share: 0.42, variant: 0.07 },
+    normal: { min: 0.8, margin: 0.03, share: 0.5, variant: 0.045 },
+    strict: { min: 0.86, margin: 0.0, share: 0.58, variant: 0.025 },
   };
+
+  /**
+   * The mistakes beginners actually make, as alternative voicings that add a foreign note:
+   * a fretted string ringing open, a finger one fret off, or a string marked X being strummed.
+   */
+  const variantCache = new Map();
+  function mistakeVariants(frets, pcs, capo) {
+    const key = frets.join(',') + '|' + capo;
+    if (variantCache.has(key)) return variantCache.get(key);
+    const chordPcs = new Set(pcs);
+    const out = [];
+    frets.forEach((f, s) => {
+      const tries = f > 0 ? [[0, 'open'], [f - 1, 'low'], [f + 1, 'high']] : f < 0 ? [[0, 'muted']] : [];
+      tries.forEach(([nf, kind]) => {
+        if (kind === 'low' && nf === 0) return;
+        const pc = (GT.TUNING[s] + nf + capo) % 12;
+        if (chordPcs.has(pc)) return;
+        const fr = frets.slice();
+        fr[s] = nf;
+        const notes = [];
+        fr.forEach((x, i) => { if (x >= 0) notes.push(GT.TUNING[i] + x + capo); });
+        out.push({ string: s, kind, fret: f, playedFret: nf, template: templateFromNotes(notes) });
+      });
+    });
+    variantCache.set(key, out);
+    return out;
+  }
 
   /**
    * Compare an observed chroma with the expected chord voicing.
    * expectedNotes: midi notes actually sounding (capo applied).
    */
-  function matchChord(chroma, expectedNotes, expectedPcs, strictness) {
+  function matchChord(chroma, expectedNotes, expectedPcs, strictness, frets, capo) {
     const s = STRICTNESS[strictness] || STRICTNESS.normal;
     const tExp = templateFromNotes(expectedNotes);
     const simExpected = cosine(chroma, tExp);
@@ -182,10 +209,21 @@
     for (let i = 0; i < 12; i++) { total += chroma[i]; if (expSet.has(i)) inside += chroma[i]; }
     const share = total > 0 ? inside / total : 0;
     const bestOther = best ? best.sim : 0;
-    const ok = simExpected >= s.min && simExpected >= bestOther - s.margin && share >= s.share;
+    let ok = simExpected >= s.min && simExpected >= bestOther - s.margin && share >= s.share;
+    // did it sound more like a typical finger mistake than the real chord?
+    let mistake = null;
+    if (frets) {
+      let worst = -1;
+      mistakeVariants(frets, expectedPcs, capo || 0).forEach((v) => {
+        const d = cosine(chroma, v.template) - simExpected;
+        if (d > worst) { worst = d; mistake = v; }
+      });
+      if (worst > s.variant) ok = false;
+      else mistake = null;
+    }
     // quality 0..1 for meters
     const score = Math.max(0, Math.min(1, (simExpected - 0.5) / (s.min - 0.5) * 0.8 + (simExpected >= bestOther ? 0.2 : 0)));
-    return { ok, simExpected, bestOther, bestName: ranked[0] ? ranked[0].name : null, bestOtherName: best ? best.name : null, share, score };
+    return { ok, simExpected, bestOther, bestName: ranked[0] ? ranked[0].name : null, bestOtherName: best ? best.name : null, share, score, mistake };
   }
 
   /**

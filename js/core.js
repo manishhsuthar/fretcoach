@@ -225,13 +225,13 @@
         if (tgt.kind === 'chord') {
           if (dt >= 0.16 && frame.chroma && !quiet && addNormalized(ev.acc, frame.chroma)) ev.n++;
           if (ev.n >= 4 && dt >= 0.3) {
-            const r = GT.matchChord(ev.acc, tgt.notes, tgt.pcs, S.strictness);
+            const r = GT.matchChord(ev.acc, tgt.notes, tgt.pcs, S.strictness, tgt.v.frets, tgt.capo);
             ev.last = r;
             if (r.ok) { finish(true, { match: r }); return; }
           }
           if (dt > 1.05 || (dt > 0.3 && quiet)) {
             if (ev.n < 4) { ev = null; return; } // a knock or very short sound: ignore
-            finish(false, { match: ev.last || GT.matchChord(ev.acc, tgt.notes, tgt.pcs, S.strictness) });
+            finish(false, { match: ev.last || GT.matchChord(ev.acc, tgt.notes, tgt.pcs, S.strictness, tgt.v.frets, tgt.capo) });
           }
         } else {
           if (dt >= 0.03 && frame.pitch && frame.pitch.clarity >= 0.85 && !quiet) ev.votes.push(frame.pitch.midi);
@@ -255,10 +255,18 @@
     const capo = tgt.capo || 0;
     const r = info.match;
     const tips = [];
+    const mk = r && r.mistake;
+    if (mk) {
+      const n = sn(mk.string), fg = v.fingers[mk.string];
+      if (mk.kind === 'open') tips.push(`String ${n} is ringing open. Press finger ${fg} down at fret ${mk.fret}, close to the fret wire.`);
+      else if (mk.kind === 'muted') tips.push(`Don't strum string ${n} (${GT.STRING_NAMES[mk.string]}). It has an X${mk.string === v.frets.findIndex((f) => f < 0) && v.frets.slice(0, mk.string + 1).every((f) => f < 0) ? `: start your strum on string ${n - 1}` : ''}.`);
+      else tips.push(`Finger ${fg} on string ${n} sounds like fret ${mk.playedFret}. It belongs on fret ${mk.fret}.`);
+    }
     if (info.peak < GT.audio.mic.gate * 2.2) tips.push('That was quiet. Strum a little harder or move closer to the mic.');
     const dg = GT.diagnoseChord(info.acc, v, capo);
     const openPc = (s) => (GT.TUNING[s] + capo) % 12;
     dg.extra.forEach((pc) => {
+      if (mk) return;
       let said = false;
       v.frets.forEach((f, s) => {
         if (said || openPc(s) !== pc) return;
@@ -277,7 +285,8 @@
       }
     });
     let headline = 'Not quite. Check your fingers and strum again.';
-    if (r && r.bestOtherName && r.bestOther > r.simExpected + 0.02) {
+    if (mk) headline = 'Almost! One string is off.';
+    else if (r && r.bestOtherName && r.bestOther > r.simExpected + 0.02) {
       headline = `That sounded more like ${GT.transposeChordName(r.bestOtherName, -capo)}.`;
     } else if (r && r.simExpected > 0.7) headline = 'Close! One string is off.';
     return { headline, tips: tips.slice(0, 2) };
