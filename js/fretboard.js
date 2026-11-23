@@ -13,7 +13,8 @@
    */
   function fretboard(opts) {
     const o = Object.assign({ from: 0, to: 5, view: 'player', labels: 'finger', capo: 0 }, opts || {});
-    const W = 960, H = o.compact ? 210 : 250;
+    // narrower drawing on phones keeps labels and dots readable
+    const W = o.width || 960, H = o.compact ? 210 : 250;
     const padL = 70, markerX = 96, nutX = 122, endX = W - 18;
     const top = 30, bottom = H - 42;
     const lefty = !!o.leftHanded;
@@ -97,19 +98,22 @@
         }
       });
     }
-    (o.ghost || []).forEach((g) => {
+    (o.ghost || []).forEach((g, gi) => {
+      const cls = gi === 0 ? 'soon' : 'later';
       if (g.fret === 0) {
-        parts.push(`<circle cx="${X(markerX)}" cy="${sY(g.string)}" r="9" class="fb-ghost-open"/>`);
+        parts.push(`<circle cx="${X(markerX)}" cy="${sY(g.string)}" r="11" class="fb-ghost-open ${cls}"/>`);
         return;
       }
       if (g.fret < from || g.fret > to) return;
-      parts.push(`<circle cx="${X(spotX(g.fret))}" cy="${sY(g.string)}" r="${dotR - 3}" class="fb-ghost"/>`);
-      if (g.label) parts.push(`<text x="${X(spotX(g.fret))}" y="${sY(g.string) + 5}" class="fb-ghost-label" text-anchor="middle">${esc(g.label)}</text>`);
+      parts.push(`<circle cx="${X(spotX(g.fret))}" cy="${sY(g.string)}" r="${dotR - 3}" class="fb-ghost ${cls}"/>`);
     });
     (o.notes || []).forEach((nt) => {
       const y = sY(nt.string);
       if (nt.fret === 0) {
-        parts.push(`<circle cx="${X(markerX)}" cy="${y}" r="13" class="fb-open-target ${nt.cls || ''}"/>`);
+        // open string: highlight the whole string plus a ring at the nut
+        const x1 = X(fx(0)), x2 = X(endX + 10);
+        parts.push(`<rect x="${Math.min(x1, x2)}" y="${y - 5}" width="${Math.abs(x2 - x1)}" height="10" rx="5" class="fb-open-glow ${nt.cls || ''}"/>`);
+        parts.push(`<circle cx="${X(markerX)}" cy="${y}" r="15" class="fb-open-target ${nt.cls || ''}"/>`);
         parts.push(`<text x="${X(markerX)}" y="${y + 5}" class="fb-open-label" text-anchor="middle">${esc(nt.label || '0')}</text>`);
         return;
       }

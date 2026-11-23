@@ -179,12 +179,16 @@ main#view {
 .fb-dot-label { font: 700 18px var(--font-mono); fill: #fff; pointer-events: none; }
 .fb-mute path { stroke: var(--bad); stroke-width: 3.4; stroke-linecap: round; fill: none; }
 .fb-open { fill: none; stroke: var(--fg); stroke-width: 2.8; }
-.fb-open-target { fill: color-mix(in srgb, var(--f0) 35%, transparent); stroke: var(--fg); stroke-width: 2.8; }
+.fb-open-target { fill: var(--accent); stroke: var(--fg); stroke-width: 2; }
 .fb-open-target.now { animation: dotPulse 1.4s ease-in-out infinite; }
-.fb-open-label { font: 700 15px var(--font-mono); fill: var(--fg); }
-.fb-ghost { fill: none; stroke: #f3ead6; stroke-width: 2.4; stroke-dasharray: 5 4; opacity: 0.75; }
-.fb-ghost-open { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 4 3; }
-.fb-ghost-label { font: 700 11px var(--font-mono); fill: #f3ead6; letter-spacing: 0.04em; }
+.fb-open-glow { fill: var(--accent); opacity: 0.45; }
+.fb-open-glow.now { animation: glow 1.4s ease-in-out infinite; }
+.fb-open-label { font: 700 15px var(--font-mono); fill: var(--on-accent); }
+.fb-ghost { fill: none; stroke: #f3ead6; stroke-width: 2.4; stroke-dasharray: 5 4; }
+.fb-ghost.later { opacity: 0.4; }
+.fb-ghost-open { fill: none; stroke: var(--muted); stroke-width: 2.2; stroke-dasharray: 4 3; }
+.fb-ghost-open.later { opacity: 0.45; }
+@keyframes glow { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.6; } }
 @keyframes dotPulse { 0%, 100% { stroke: rgba(255, 255, 255, 0.15); stroke-width: 2; } 50% { stroke: rgba(255, 255, 255, 0.9); stroke-width: 6; } }
 
 /* chord box */
@@ -459,6 +463,7 @@ button.seg:hover { background: var(--tint); }
 .cd-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 380px); gap: 14px 22px; }
 .cd-grid .fb-wrap { grid-column: 1 / -1; }
 .cd-check { display: grid; gap: 10px; align-content: start; }
+.cd-grid .howto { align-content: start; grid-template-columns: 1fr; }
 .warn-card { border-color: var(--warn); }
 
 /* ------------------------------------------------------------------ tuner */

@@ -401,7 +401,7 @@
       `<li class="strum-tip"><svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path d="M12 3v14m0 0l-5-5m5 5l5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${esc(strum)}</span></li>`;
   }
 
-  const fbOpts = (extra) => Object.assign({ view: S.view, leftHanded: S.leftHanded, labels: S.labels }, extra);
+  const fbOpts = (extra) => Object.assign({ view: S.view, leftHanded: S.leftHanded, labels: S.labels, width: window.innerWidth < 640 ? 620 : 960 }, extra);
 
   Object.assign(App, {
     store, S, save, resetProgress, applySettings, LEVELS, allSongs, findSong, dayKey, addPractice, streak, weekMinutes, weekSeries,
