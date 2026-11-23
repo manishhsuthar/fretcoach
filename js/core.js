@@ -150,7 +150,19 @@
 
   // track practice time: seconds where the mic heard you recently
   let lastSound = 0;
-  GT.audio.onFrame((f) => { if (f.level > f.gate && !f.ignored) lastSound = performance.now(); });
+  let faint = 0, faintHinted = false;
+  GT.audio.onFrame((f) => {
+    if (f.ignored) return;
+    if (f.level > f.gate) { lastSound = performance.now(); faint = Math.max(0, faint - 2); return; }
+    // something is playing, but too quietly to be checked
+    const nf = GT.audio.mic.noiseFloor;
+    if (f.level > Math.max(nf * 5, f.gate * 0.4)) faint++;
+    else faint = Math.max(0, faint - 0.25);
+    if (faint > 120 && !faintHinted) {
+      faintHinted = true;
+      toast('I can barely hear you. Move the mic closer, strum harder, or raise "Input boost" in Settings.');
+    }
+  });
   setInterval(() => {
     if (micOn() && performance.now() - lastSound < 4000 && !document.hidden) addPractice(1);
   }, 1000);
