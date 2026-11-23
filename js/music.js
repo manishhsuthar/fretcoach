@@ -326,9 +326,29 @@
     return best;
   }
 
+  /** Suggest capo + shapes that keep the same sound with the easiest chords. */
+  function easierKey(chordNames, currentCapo, currentTranspose) {
+    const uniq = [...new Set(chordNames)];
+    const cost = (names) => names.reduce((acc, n) => {
+      const v = voicing(n);
+      if (!v) return acc + 4;
+      return acc + (v.open ? (v.difficulty === 1 ? 1 : 1.6) : 3.2);
+    }, 0);
+    const soundOffset = (currentCapo || 0) + (currentTranspose || 0);
+    const results = [];
+    for (let capo = 0; capo <= 7; capo++) {
+      const t = soundOffset - capo;
+      const names = uniq.map((n) => transposeChordName(n, t));
+      results.push({ capo, transpose: t, names, cost: cost(names) + capo * 0.08 });
+    }
+    results.sort((a, b) => a.cost - b.cost);
+    const current = results.find((r) => r.capo === (currentCapo || 0) && r.transpose === (currentTranspose || 0));
+    return { best: results[0], current, all: results };
+  }
+
   Object.assign(GT, {
     NOTES_SHARP, NOTES_FLAT, TUNING, STRING_NAMES, FINGER_NAMES, INTERVALS, OPEN,
     midiToFreq, freqToMidi, mod12, stringNumber, pcName, midiName, parseNote, setNaming,
-    parseChord, chordKey, chordDisplayName, transposeChordName, voicing, chordSteps, notePosition,
+    parseChord, chordKey, chordDisplayName, transposeChordName, voicing, chordSteps, notePosition, easierKey,
   });
 })(typeof window !== 'undefined' ? window : globalThis);
