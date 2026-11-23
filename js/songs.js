@@ -179,6 +179,115 @@ And it's [Am:3]been the [C:3]ruin of [D:3]many a poor [F:3]boy, and [Am:3]God, I
     },
   ];
 
+  // ------------------------------------------------------------------ lessons
+  const LESSONS = [
+    {
+      id: 'meet', title: 'Meet your guitar', minutes: 5,
+      summary: 'Hold it, name the six strings, and learn the finger numbers.',
+      body: `<p>Sit up, rest the guitar's waist on your right leg, and let the neck point slightly up to the left. Your <b>left hand</b> presses the strings (the "fretting hand"), your <b>right hand</b> strums or plucks near the sound hole. Left-handed? Switch it on in Settings.</p>
+<p>The strings are numbered from the <b>thinnest (1)</b> to the <b>thickest (6)</b>. From thickest to thinnest they are <b>E A D G B E</b>. Remember it with <i>Eddie Ate Dynamite, Good Bye Eddie</i>.</p>
+<p>Fingers are numbered too: <b>1</b> index, <b>2</b> middle, <b>3</b> ring, <b>4</b> pinky. Every dot on a FretCoach diagram shows which finger to use in that colour.</p>`,
+      showHand: true,
+      exercises: [
+        { title: 'Pluck each open string, 6 → 1', kind: 'melody', melody: 'E2 A2 D3 G3 B3 E4', tip: 'Don\'t press anything. Pluck the string shown and FretCoach checks it.' },
+        { title: 'Back down, 1 → 6', kind: 'melody', melody: 'E4 B3 G3 D3 A2 E2' },
+      ],
+    },
+    {
+      id: 'tune', title: 'Tune up', minutes: 3,
+      summary: 'An out-of-tune guitar makes right chords sound wrong. Tune before every session.',
+      body: `<p>Pluck one string at a time and turn its tuning peg slowly. If the needle sits <b>left</b>, the string is too low (flat): <b>tighten</b> it. If it sits <b>right</b>, it is too high (sharp): <b>loosen</b> it.</p>
+<p>New strings stretch and go flat quickly. That's normal: tune again after a few minutes.</p>`,
+      tuner: true,
+      exercises: [],
+    },
+    {
+      id: 'first-notes', title: 'Your first fretted notes', minutes: 8,
+      summary: 'Press a string behind a fret. Notes on the B and high E strings.',
+      body: `<p>Press with your <b>fingertip</b>, just behind the metal fret (not on top of it). Keep your thumb behind the neck, roughly opposite your middle finger.</p>
+<p>A buzzing sound means you need to press a little harder or move closer to the fret. One finger per fret: fret 1 is finger 1, fret 3 is finger 3.</p>`,
+      exercises: [
+        { title: 'B string: B, C, D', kind: 'melody', melody: 'B3 C4 D4 C4 B3 C4 D4:2' },
+        { title: 'High E string: E, F, G', kind: 'melody', melody: 'E4 F4 G4 F4 E4 F4 G4:2' },
+        { title: 'Both strings together', kind: 'melody', melody: 'B3 C4 D4 E4 F4 G4 F4 E4 D4 C4 B3:2' },
+      ],
+      songs: ['mel-mary', 'mel-ode'],
+    },
+    {
+      id: 'em', title: 'First chord: E minor', minutes: 6,
+      summary: 'Two fingers, all six strings. The easiest full chord on guitar.',
+      body: `<p>Put finger <b>2</b> on string 5, fret 2 and finger <b>3</b> on string 4, fret 2. Arch your fingers so they don't touch the strings below them.</p>
+<p>Strum all six strings from the thickest down. Then pluck each string one at a time: every string should ring clearly. If one is dull, a finger is touching it.</p>`,
+      chord: 'Em',
+      exercises: [
+        { title: 'Strum Em four times', kind: 'chords', chords: ['Em', 'Em', 'Em', 'Em'] },
+        { title: 'Lift off and put it back', kind: 'chords', chords: ['Em', 'Em', 'Em', 'Em', 'Em', 'Em'], tip: 'Take your hand off the neck between strums. Building the shape from memory is the real skill.' },
+      ],
+    },
+    {
+      id: 'am', title: 'A minor, and your first change', minutes: 8,
+      summary: 'Am uses the same two fingers as Em, shifted over one string.',
+      body: `<p>For <b>Am</b>, don't play string 6. Finger 1 goes on string 2, fret 1; fingers 2 and 3 slide over one string from the Em shape, to strings 4 and 3.</p>
+<p>When changing, move all fingers together and keep them close to the strings. Speed comes later; clean comes first.</p>`,
+      chord: 'Am',
+      exercises: [
+        { title: 'Strum Am four times', kind: 'chords', chords: ['Am', 'Am', 'Am', 'Am'] },
+        { title: 'Change: Em ↔ Am', kind: 'chords', chords: ['Em', 'Am', 'Em', 'Am', 'Em', 'Am', 'Em', 'Am'] },
+      ],
+      songs: ['prog-em-am'],
+    },
+    {
+      id: 'g-c-d', title: 'G, C and D', minutes: 12,
+      summary: 'The three chords behind thousands of songs.',
+      body: `<p><b>G</b> stretches across the neck: fingers 1 and 2 on the thick strings, finger 3 on the thinnest. <b>C</b> is a staircase: 3 on string 5, 2 on string 4, 1 on string 2. Skip string 6. <b>D</b> is a small triangle on the thin strings. Strum only the four thinnest.</p>
+<p>Watch the "X" marks: those strings stay silent. Start each strum on the first string that has no X.</p>`,
+      chord: 'G',
+      exercises: [
+        { title: 'G chord', kind: 'chords', chords: ['G', 'G', 'G', 'G'] },
+        { title: 'C chord', kind: 'chords', chords: ['C', 'C', 'C', 'C'] },
+        { title: 'D chord', kind: 'chords', chords: ['D', 'D', 'D', 'D'] },
+        { title: 'Change: G → C → D', kind: 'chords', chords: ['G', 'C', 'D', 'G', 'C', 'D', 'G'] },
+      ],
+      songs: ['twinkle-chords', 'prog-g-c-d', 'tom-dooley'],
+    },
+    {
+      id: 'strumming', title: 'Strumming in time', minutes: 10,
+      summary: 'Keep your strumming hand moving like a pendulum, down on the beat and up in between.',
+      body: `<p>Count <b>1 & 2 & 3 & 4 &</b>. Your hand moves <b>down on the numbers</b> and <b>up on the "&"</b>, even when you don't hit the strings. That steady motion is what keeps you in time.</p>
+<p>Use <b>Play along</b> mode: a metronome clicks, the chords move on their own, and FretCoach scores each bar. Start at a slow tempo and speed up when you score 3 stars.</p>`,
+      exercises: [
+        { title: 'Play along: Em ↔ Am', kind: 'song', song: 'prog-em-am', mode: 'timed' },
+        { title: 'Play along: G, C, D', kind: 'song', song: 'prog-g-c-d', mode: 'timed' },
+      ],
+      songs: ['whole-world', 'happy-birthday'],
+    },
+    {
+      id: 'sevenths', title: 'E, A and the 7th chords', minutes: 12,
+      summary: 'E, A, plus D7, A7 and E7, the sound of blues and folk.',
+      body: `<p><b>E</b> is Em plus finger 1 on string 3, fret 1. <b>A</b> lines three fingers up on fret 2. Squeeze them in, slightly angled.</p>
+<p>7th chords add a bluesy tension that wants to move to the next chord. They are often <i>easier</i> than the plain chord: E7 is just E with finger 3 lifted.</p>`,
+      chord: 'E',
+      exercises: [
+        { title: 'E and A', kind: 'chords', chords: ['E', 'A', 'E', 'A', 'E', 'A'] },
+        { title: 'The 7ths: A7, D7, E7', kind: 'chords', chords: ['A7', 'D7', 'E7', 'A7', 'D7', 'E7'] },
+      ],
+      songs: ['prog-blues', 'down-valley', 'oh-susanna', 'jingle-bells'],
+    },
+    {
+      id: 'f-chord', title: 'The F chord (easy version)', minutes: 10,
+      summary: 'The famous hard chord, made easier: four strings and a mini barre.',
+      body: `<p>Lay finger <b>1</b> flat across strings 1 and 2 at fret 1. Then finger 2 on string 3, fret 2 and finger 3 on string 4, fret 3. Strum only the four thinnest strings.</p>
+<p>If the mini barre buzzes, roll finger 1 slightly onto its bony side, and keep your thumb low behind the neck.</p>`,
+      chord: 'F',
+      exercises: [
+        { title: 'F chord', kind: 'chords', chords: ['F', 'F', 'F', 'F'] },
+        { title: 'Change: C ↔ F', kind: 'chords', chords: ['C', 'F', 'C', 'F', 'C', 'F'] },
+        { title: 'Change: Am → F → C → G', kind: 'chords', chords: ['Am', 'F', 'C', 'G', 'Am', 'F', 'C', 'G'] },
+      ],
+      songs: ['prog-50s', 'prog-minor', 'rising-sun'],
+    },
+  ];
+
   // ------------------------------------------------------------- compiling
   const CHORD_TOKEN_RE = /\[([^\]]+)\]/g;
 
@@ -297,5 +406,5 @@ And it's [Am:3]been the [C:3]ruin of [D:3]many a poor [F:3]boy, and [Am:3]God, I
     return set;
   }
 
-  Object.assign(GT, { SONGS, STRUMS, strumFor, compileSong, chordsInSong, parseChordToken });
+  Object.assign(GT, { SONGS, LESSONS, STRUMS, strumFor, compileSong, chordsInSong, parseChordToken });
 })(typeof window !== 'undefined' ? window : globalThis);
