@@ -576,7 +576,7 @@
       ps.finished = false;
       el.results.hidden = true;
       $$('.seg [data-mode]', main).forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === m)));
-      main.querySelector('.player').dataset.mode = m;
+      main.querySelector('.player').dataset.current = m;
       el.go.hidden = m === 'practice';
       $('#backingWrap', main).hidden = m !== 'timed';
       if (m === 'practice') setPracticeStatus();
@@ -614,7 +614,7 @@
 
     // ------------------------------------------------------------ events
     main.addEventListener('click', (e) => {
-      const modeBtn = e.target.closest('[data-mode]');
+      const modeBtn = e.target.closest('.seg [data-mode]');
       if (modeBtn) { setMode(modeBtn.dataset.mode); return; }
       const stepBtn = e.target.closest('[data-step]');
       if (stepBtn) {
