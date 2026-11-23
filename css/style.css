@@ -266,3 +266,29 @@ main#view {
 .mic-box .ico { width: 28px; height: 28px; color: var(--accent); }
 .mic-box.compact { padding: 10px 12px; }
 .mic-box[data-state="denied"], .mic-box[data-state="error"], .mic-box[data-state="insecure"] { border-color: var(--bad); }
+
+/* ---------------------------------------------------------------- learn */
+.path { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.lesson-card { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 16px 18px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); text-decoration: none; color: var(--fg); }
+.lesson-card:hover { border-color: var(--muted); }
+.lesson-card p { color: var(--muted); font-size: 15px; margin-top: 3px; }
+.lc-num { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--line); font: 800 18px var(--font-display); color: var(--muted); }
+.lc-num svg, .ex-tick svg { width: 22px; height: 22px; fill: none; stroke: var(--bg); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.lesson-card.done .lc-num { background: var(--ok); border-color: var(--ok); }
+.lesson-card.next { border-color: var(--accent); }
+.lesson-card.next .lc-num { border-color: var(--accent); color: var(--accent-ink); }
+.lc-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; color: var(--muted); font: 600 13px var(--font-mono); }
+.lesson-head { display: grid; gap: 8px; }
+.lesson-grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 28px; align-items: start; }
+.prose { display: grid; gap: 14px; max-width: 64ch; font-size: 18px; }
+.prose b { color: var(--fg); }
+.aside-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 10px; justify-items: center; text-align: center; }
+.aside-card .cbox { max-width: 180px; }
+.tuning-big { font: 850 34px var(--font-display); font-stretch: 120%; letter-spacing: 0.08em; }
+.ex-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ex { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 16px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); }
+.ex-tick { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); font: 700 14px var(--font-mono); color: var(--muted); }
+.ex.done .ex-tick { background: var(--ok); border-color: var(--ok); }
+.ex-body p { font-size: 15px; }
+.ex-tip { margin-top: 4px; color: var(--fg); font-size: 15px; }
+.lesson-foot { display: flex; gap: 12px; justify-content: space-between; align-items: center; flex-wrap: wrap; padding-top: 8px; border-top: 1px solid var(--line); }
