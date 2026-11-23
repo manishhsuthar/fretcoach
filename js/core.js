@@ -257,7 +257,9 @@
     const capo = tgt.capo || 0;
     const r = info.match;
     const tips = [];
-    const mk = r && r.mistake;
+    // a whole different chord beats "one string is off" advice
+    const otherChord = r && r.bestOtherName && r.bestOther > r.simExpected + 0.02 && r.simExpected < 0.88;
+    const mk = r && !otherChord ? r.mistake : null;
     if (mk) {
       const n = sn(mk.string), fg = v.fingers[mk.string];
       if (mk.kind === 'open') tips.push(`String ${n} is ringing open. Press finger ${fg} down at fret ${mk.fret}, close to the fret wire.`);
@@ -287,8 +289,15 @@
       }
     });
     let headline = 'Not quite. Check your fingers and strum again.';
+    if (otherChord) {
+      const shape = v.frets.map((f, s) => (f > 0 ? `finger ${v.fingers[s]} on string ${sn(s)} fret ${f}` : null)).filter(Boolean);
+      const firstPlayed = v.frets.findIndex((f) => f >= 0);
+      tips.length = 0;
+      tips.push(shape.length ? `${tgt.name} is ${shape.join(', ')}.` : `${tgt.name} uses only open strings.`);
+      if (firstPlayed > 0) tips.push(`Start the strum on string ${sn(firstPlayed)}.`);
+    }
     if (mk) headline = 'Almost! One string is off.';
-    else if (r && r.bestOtherName && r.bestOther > r.simExpected + 0.02) {
+    else if (otherChord) {
       headline = `That sounded more like ${GT.transposeChordName(r.bestOtherName, -capo)}.`;
     } else if (r && r.simExpected > 0.7) headline = 'Close! One string is off.';
     return { headline, tips: tips.slice(0, 2) };
