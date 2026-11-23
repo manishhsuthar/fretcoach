@@ -106,6 +106,46 @@ For I [G:12]come from Alabama with my [D7:2]banjo on my [G:2]knee.`,
       sheet: `There [Am:3]is a [C:3]house in [D:3]New Or[F:3]leans, they [Am:3]call the [C:3]Rising [E:6]Sun.
 And it's [Am:3]been the [C:3]ruin of [D:3]many a poor [F:3]boy, and [Am:3]God, I [E:3]know I'm [Am:3]one. [E:3]`,
     },
+    // Practice progressions
+    {
+      id: 'prog-em-am', title: 'Em and Am warm-up', artist: 'Practice loop', level: 1, bpm: 70, beats: 4, strum: 'quarters', group: 'loop',
+      tip: 'The two easiest chords. Notice how your 2nd and 3rd fingers just move over one string.',
+      sheet: `[Em] [Am] [Em] [Am]
+[Em] [Am] [Em] [Am]`,
+    },
+    {
+      id: 'prog-g-c-d', title: 'G, C, D: three-chord rock', artist: 'Practice loop', level: 1, bpm: 76, beats: 4, strum: 'quarters', group: 'loop',
+      tip: 'Thousands of songs use only these three chords.',
+      sheet: `[G] [C] [G] [D]
+[G] [C] [D] [G]`,
+    },
+    {
+      id: 'prog-pop', title: 'Pop four-chord loop', artist: 'Practice loop', level: 2, bpm: 80, beats: 4, strum: 'folk', group: 'loop',
+      tip: 'G, D, Em, C. The progression behind a huge number of pop hits.',
+      sheet: `[G] [D] [Em] [C]
+[G] [D] [Em] [C]
+[G] [D] [Em] [C]
+[G] [D] [C] [G]`,
+    },
+    {
+      id: 'prog-50s', title: "'50s doo-wop", artist: 'Practice loop', level: 2, bpm: 84, beats: 4, strum: 'basic', group: 'loop',
+      tip: 'C, Am, F, G. Uses the easy four-string F.',
+      sheet: `[C] [Am] [F] [G]
+[C] [Am] [F] [G]`,
+    },
+    {
+      id: 'prog-minor', title: 'Minor mood', artist: 'Practice loop', level: 2, bpm: 76, beats: 4, strum: 'folk', group: 'loop',
+      tip: 'Am, F, C, G. Same chords as the doo-wop loop, starting somewhere else.',
+      sheet: `[Am] [F] [C] [G]
+[Am] [F] [C] [G]`,
+    },
+    {
+      id: 'prog-blues', title: '12-bar blues in A', artist: 'Practice loop', level: 2, bpm: 90, beats: 4, strum: 'basic', group: 'loop',
+      tip: 'The blues form: 4 bars of A7, 2 of D7, 2 of A7, then E7, D7, A7, E7.',
+      sheet: `[A7] [A7] [A7] [A7]
+[D7] [D7] [A7] [A7]
+[E7] [D7] [A7] [E7]`,
+    },
   ];
 
   // ------------------------------------------------------------- compiling
