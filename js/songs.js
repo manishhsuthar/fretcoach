@@ -406,5 +406,109 @@ And it's [Am:3]been the [C:3]ruin of [D:3]many a poor [F:3]boy, and [Am:3]God, I
     return set;
   }
 
-  Object.assign(GT, { SONGS, LESSONS, STRUMS, strumFor, compileSong, chordsInSong, parseChordToken });
+  // ------------------------------------------------------ pasted chord sheets
+  const IGNORABLE = /^(\||\|\||-+|x\d+|\(x\d+\)|\d+x|\/|%|\*|N\.?C\.?|\(|\)|:|\.+)$/i;
+  const SECTION_RE = /^\s*[\[(]?\s*(intro|verse|chorus|pre-?chorus|bridge|outro|refrain|interlude|solo|instrumental|hook|coda|tag|ending|break)\b[^\])]*[\])]?\s*:?\s*$/i;
+  const SECTION_WITH_CHORDS_RE = /^\s*[\[(]?\s*(intro|outro|interlude|instrumental|solo|riff|break|ending)\s*[\])]?\s*:?\s*(.+)$/i;
+  const TAB_RE = /^\s*[eBGDAEbgdae]?\s*\|?[-0-9|hpbrx\/\\~()\s]{6,}\|?\s*$/;
+
+  function chordLineTokens(line) {
+    const tokens = [];
+    const re = /\S+/g;
+    let m;
+    let chordCount = 0;
+    while ((m = re.exec(line))) {
+      const t = m[0].replace(/[,]$/, '');
+      if (IGNORABLE.test(t)) continue;
+      const clean = t.replace(/^\(|\)$/g, '');
+      if (!GT.parseChord(clean)) return null;
+      chordCount++;
+      tokens.push({ col: m.index, name: clean });
+    }
+    return chordCount ? tokens : null;
+  }
+
+  /** Convert a pasted chord sheet (chords over lyrics, or ChordPro) to ChordPro text plus metadata. */
+  function parsePasted(text) {
+    const meta = {};
+    const out = [];
+    const lines = String(text || '').replace(/\t/g, '    ').split(/\r?\n/);
+    const unknown = new Set();
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].replace(/\s+$/, '');
+      const trimmed = line.trim();
+      if (!trimmed) { out.push(''); continue; }
+      const dir = /^\{.*\}$/.test(trimmed) ? sectionName(trimmed) : null;
+      if (dir) {
+        if (dir.meta) meta[dir.meta] = dir.value;
+        else if (dir.section != null) out.push(`{c: ${dir.section}}`);
+        continue;
+      }
+      const capo = /^capo\s*:?\s*(?:on\s*)?(\d+)/i.exec(trimmed);
+      if (capo) { meta.capo = parseInt(capo[1], 10); continue; }
+      if (/^(tuning|key|tempo|bpm|chords?)\s*:/i.test(trimmed)) {
+        const bpm = /^(tempo|bpm)\s*:\s*(\d+)/i.exec(trimmed);
+        if (bpm) meta.bpm = parseInt(bpm[2], 10);
+        continue;
+      }
+      if (TAB_RE.test(line) && /-{3,}/.test(line)) continue;
+      if (/\[[^\]]+\]/.test(line) && !SECTION_RE.test(trimmed)) {
+        // ChordPro inline; keep, but flag unknown chord tokens
+        line.replace(CHORD_TOKEN_RE, (_, tok) => { if (!parseChordToken(tok)) unknown.add(tok); return ''; });
+        out.push(line);
+        continue;
+      }
+      if (SECTION_RE.test(trimmed)) { out.push(`{c: ${trimmed.replace(/^[\[(]|[\])]?:?$/g, '').replace(/[\])]/g, '').trim()}}`); continue; }
+      const swc = SECTION_WITH_CHORDS_RE.exec(trimmed);
+      if (swc && chordLineTokens(swc[2])) {
+        out.push(`{c: ${swc[1][0].toUpperCase() + swc[1].slice(1)}}`);
+        out.push(chordLineTokens(swc[2]).map((t) => `[${t.name}]`).join(' '));
+        continue;
+      }
+      const chords = chordLineTokens(line);
+      if (chords) {
+        const next = lines[i + 1] != null ? lines[i + 1].replace(/\s+$/, '') : '';
+        const nextIsLyric = next.trim() && !chordLineTokens(next) && !SECTION_RE.test(next.trim()) && !/^\{.*\}$/.test(next.trim()) && !(TAB_RE.test(next) && /-{3,}/.test(next));
+        if (nextIsLyric) {
+          let lyric = next;
+          const maxCol = chords[chords.length - 1].col;
+          if (lyric.length < maxCol) lyric = lyric.padEnd(maxCol, ' ');
+          let merged = '';
+          let pos = 0;
+          chords.forEach((c) => {
+            merged += lyric.slice(pos, c.col) + `[${c.name}]`;
+            pos = c.col;
+          });
+          merged += lyric.slice(pos);
+          out.push(merged.replace(/\s+$/, ''));
+          i++;
+        } else {
+          out.push(chords.map((c) => `[${c.name}]`).join(' '));
+        }
+        continue;
+      }
+      out.push(line);
+    }
+    const sheet = out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    return { sheet, meta, unknown: [...unknown] };
+  }
+
+  /** Quick progression: "G D Em C" or "G | D | Em C" -> sheet */
+  function progressionToSheet(text, beats) {
+    const bars = String(text).split(/\n/).map((row) => {
+      const parts = row.split('|').map((b) => b.trim()).filter(Boolean);
+      if (parts.length > 1) {
+        return parts.map((bar) => {
+          const cs = bar.split(/\s+/).filter((c) => GT.parseChord(c));
+          if (!cs.length) return '';
+          const each = beats / cs.length;
+          return cs.map((c) => `[${c}${cs.length > 1 ? ':' + each : ''}]`).join('');
+        }).join(' ');
+      }
+      return row.split(/[\s,]+/).filter((c) => GT.parseChord(c)).map((c) => `[${c}]`).join(' ');
+    });
+    return bars.filter(Boolean).join('\n');
+  }
+
+  Object.assign(GT, { SONGS, LESSONS, STRUMS, strumFor, compileSong, chordsInSong, parsePasted, progressionToSheet, parseChordToken });
 })(typeof window !== 'undefined' ? window : globalThis);
