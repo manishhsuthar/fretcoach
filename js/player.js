@@ -130,7 +130,7 @@
       $$('[data-step]', el.sheet).forEach((b) => {
         const i = +b.dataset.step;
         b.classList.toggle('cur', i === ps.idx);
-        b.classList.remove('hit', 'miss', 'silent');
+        b.classList.remove('hit', 'miss', 'silent', 'retry');
         if (ps.results[i]) b.classList.add(ps.results[i]);
       });
     }
@@ -262,7 +262,7 @@
         const st = curStep();
         if (!st) return;
         if (ok) {
-          if (ps.results[ps.idx] !== 'miss') ps.results[ps.idx] = 'hit';
+          ps.results[ps.idx] = ps.results[ps.idx] === 'miss' ? 'retry' : 'hit';
           ps.combo++;
           ps.bestCombo = Math.max(ps.bestCombo, ps.combo);
           if (st.kind === 'chord') App.recordChordHit(st.chord);
@@ -300,6 +300,12 @@
 
     function finishPractice() {
       ps.finished = true;
+      if (!ps.results.some(Boolean)) {
+        ps.idx = C.steps.length - 1;
+        setStatus('ok', 'You reached the end!', 'Turn on the microphone next time and I\'ll check every ' + (isMelody ? 'note' : 'chord') + '.', '<div class="st-actions"><button class="btn small" data-act="again">Start over</button></div>');
+        if (opts.onComplete) opts.onComplete({ acc: 0, clean: 0, total: C.steps.length, mode: 'practice', unchecked: true });
+        return;
+      }
       const total = C.steps.length;
       const clean = C.steps.filter((_, i) => ps.results[i] === 'hit').length;
       const acc = Math.round((clean / total) * 100);
@@ -367,18 +373,13 @@
       highlightSlot(-1);
     }
 
-    function stepNotes(st) {
-      const t = targetFor(C.steps.indexOf(st));
-      return t ? t.notes : [];
-    }
-
     function schedule() {
       if (!tp.playing) return;
       const ctx = GT.audio.ensureContext();
       const horizon = ctx.currentTime + 0.16;
       while (timeOf(tp.nextClick) < horizon && tp.nextClick < C.totalBeats) {
         const b = tp.nextClick;
-        if (ps.metronome || b < tp.startBeat) GT.audio.click(timeOf(b), GT.mod12(Math.round(b)) % bpb === 0 && true && ((Math.round(b) % bpb) + bpb) % bpb === 0);
+        if (ps.metronome || b < tp.startBeat) GT.audio.click(timeOf(b), ((Math.round(b) % bpb) + bpb) % bpb === 0);
         tp.nextClick++;
       }
       const playGuitar = ps.mode === 'listen' || ps.backing;
@@ -693,11 +694,9 @@
     const offMic = App.on('mic', () => { if (ps.mode === 'practice' && !ps.finished) setPracticeStatus(); });
 
     // initial
-    renderSheet();
-    renderStep();
+    recompile();
     updateTempo();
     setMode(ps.mode);
-    recompile();
     if (opts.autostart && ps.mode !== 'practice') setTimeout(() => { if (!tp.playing) startTransport(); }, 50);
 
     return () => {
