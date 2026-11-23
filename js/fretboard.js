@@ -152,7 +152,7 @@
     const offY = o.showName ? 26 : 0;
     const left = 26, right = W - 18, top = 34 + offY, rows = 5;
     const lefty = o.leftHanded;
-    const sx = (s) => { const x = left + (s * (right - left)) / 5; return lefty ? W - x + (left - 18) - (left - 18) : x; };
+    const sx = (s) => left + (s * (right - left)) / 5;
     const fretted = v.frets.filter((f) => f > 0);
     const maxF = fretted.length ? Math.max(...fretted) : 0;
     const minF = fretted.length ? Math.min(...fretted) : 0;
