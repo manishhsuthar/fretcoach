@@ -681,15 +681,17 @@
     document.addEventListener('keydown', onKey);
 
     // mic frames
+    const namer = App.createLiveNamer();
     const offFrame = GT.audio.onFrame((frame) => {
       if (ps.mode === 'practice') judge.handle(frame);
       else onTimedFrame(frame);
       const loud = frame.level > frame.gate && !frame.ignored;
       chroma.update(loud ? frame.chroma : null);
       if (loud) {
-        const name = isMelody ? (frame.pitch && frame.pitch.clarity > 0.85 ? GT.midiName(frame.pitch.midi) : null) : App.liveChordName(frame.chroma);
+        const name = isMelody ? (frame.pitch && frame.pitch.clarity > 0.85 ? GT.midiName(frame.pitch.midi) : null) : null;
         if (name) el.live.textContent = `I hear: ${name}`;
       }
+      if (!isMelody) { const n = namer(frame); if (n) el.live.textContent = `I hear: ${n}`; }
     });
     const offMic = App.on('mic', () => { if (ps.mode === 'practice' && !ps.finished) setPracticeStatus(); });
 

@@ -85,14 +85,14 @@
     </section>`;
 
     const cw = App.chromaWidget($('#tryChroma', main));
-    let hold = 0;
+    const namer = App.createLiveNamer();
+    let lastName = null;
     const off = GT.audio.onFrame((f) => {
       const loud = f.level > f.gate && !f.ignored;
       cw.update(loud ? f.chroma : null);
-      if (!loud) return;
-      const name = App.liveChordName(f.chroma);
-      if (name && performance.now() - hold > 250) {
-        hold = performance.now();
+      const name = namer(f);
+      if (name && name !== lastName) {
+        lastName = name;
         $('#tryName', main).textContent = name;
         const v = GT.voicing(name);
         $('#trySub', main).textContent = v ? `${GT.pcName(v.root)} ${v.qualityWord}` : '';
@@ -876,6 +876,7 @@ Walk with me, we'll carry the load`;
     prev();
 
     const cw = App.chromaWidget($('#sChroma', main));
+    const namer = App.createLiveNamer();
     let cal = null;
     const off = GT.audio.onFrame((f) => {
       const lv = $('#sLevel', main);
@@ -884,7 +885,8 @@ Walk with me, we'll carry the load`;
       const loud = f.level > f.gate;
       cw.update(loud ? f.chroma : null);
       if (loud && f.pitch && f.pitch.clarity > 0.88) $('#tNoteS', main).textContent = `${GT.midiName(f.pitch.midi, true)} (${f.pitch.freq.toFixed(1)} Hz)`;
-      if (loud) { const n = App.liveChordName(f.chroma); if (n) $('#tChordS', main).textContent = n; }
+      const n = namer(f);
+      if (n) $('#tChordS', main).textContent = n;
     });
     const offMic = App.on('mic', () => { micStateText(); fillDevices(); });
 

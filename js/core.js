@@ -309,15 +309,29 @@
     return { headline: `That was ${GT.midiName(heard)}. This note is ${GT.midiName(tgt.midi)}.`, tips: pos ? [`Play ${where}.`] : [] };
   }
 
-  function liveChordName(chroma) {
-    if (!chroma) return null;
-    let best = null, sim = 0;
-    GT.chordVocabulary().forEach((c) => {
-      if (c.name.length > 3 && !/m7|maj7/.test(c.name)) return;
-      const s = GT.cosine(chroma, c.template);
-      if (s > sim) { sim = s; best = c.name; }
-    });
-    return sim > 0.78 ? best : null;
+  /** Names the chord it hears, smoothed over frames so it doesn't flicker. Returns a function(frame). */
+  function createLiveNamer() {
+    const ema = new Float32Array(12);
+    let quietFor = 0, cand = null, candN = 0, shown = null;
+    return function (frame) {
+      const loud = frame.level > frame.gate * 1.5 && !frame.ignored && frame.chroma;
+      if (!loud) { if (++quietFor > 20) { ema.fill(0); shown = null; } return shown; }
+      quietFor = 0;
+      if (frame.onset) ema.fill(0);
+      let sum = 0;
+      for (let i = 0; i < 12; i++) sum += frame.chroma[i];
+      if (sum <= 0) return shown;
+      for (let i = 0; i < 12; i++) ema[i] = ema[i] * 0.8 + (frame.chroma[i] / sum) * 0.2;
+      let best = null, sim = 0;
+      GT.chordVocabulary().forEach((c) => {
+        const s = GT.cosine(ema, c.template);
+        if (s > sim) { sim = s; best = c.name; }
+      });
+      if (sim < 0.85) return shown;
+      if (best === cand) candN++; else { cand = best; candN = 1; }
+      if (candN >= 4) shown = best;
+      return shown;
+    };
   }
 
   // ------------------------------------------------------------------ widgets
@@ -381,7 +395,7 @@
   Object.assign(App, {
     store, S, save, resetProgress, applySettings, LEVELS, allSongs, findSong, dayKey, addPractice, streak, weekMinutes, weekSeries,
     chordsLearned, recordChordHit, bus, emit, on, mic, enableMic, disableMic, micOn, micMessage, toast, chordTarget, noteTarget,
-    noteMatches, addNormalized, modeOf, createJudge, explainChord, explainNote, liveChordName, chromaWidget, starsFor, starsHTML,
+    noteMatches, addNormalized, modeOf, createJudge, explainChord, explainNote, createLiveNamer, chromaWidget, starsFor, starsHTML,
     levelBadge, micBox, chordStepsHTML, fbOpts, DEFAULT_SETTINGS,
   });
 })();
