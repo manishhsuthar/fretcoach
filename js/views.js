@@ -186,8 +186,8 @@
   let songQuery = '';
   function songsView(main) {
     main.innerHTML = `
-    <div class="page-head"><div><h1>Songs</h1><p class="lede">Every song shows the chords, the finger positions and the strum. Add any song you like from a chord website.</p></div>
-      <a class="btn primary" href="#add">Add your own song</a></div>
+    <div class="page-head"><div><h1>Songs</h1><p class="lede">Every song shows the chords, the finger positions and the strum. Add any song you like: search for it with AI, or paste chords from a chord website.</p></div>
+      <a class="btn primary" href="#add">Add a song</a></div>
     <div class="filters">
       <div class="chips" role="radiogroup" aria-label="Filter songs">
         ${[['all', 'All'], ['songs', 'Songs'], ['melody', 'Melodies'], ['loop', 'Practice loops'], ['mine', 'My songs']].map(([k, t]) => `<button class="chip-btn" role="radio" aria-checked="${songFilter === k}" data-f="${k}">${t}</button>`).join('')}
