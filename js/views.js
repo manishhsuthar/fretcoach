@@ -513,9 +513,16 @@ Walk with me, we'll carry the load`;
             buf = buf.slice(nl + 1);
             if (!line) continue;
             const msg = JSON.parse(line);
-            if (msg.type === 'status') {
-              const ol = $('#aiSteps', main);
-              if (ol) ol.insertAdjacentHTML('beforeend', `<li>${esc(msg.text)}</li>`);
+            const ol = $('#aiSteps', main);
+            if (msg.type === 'status' && ol) {
+              const live = ol.querySelector('li.live');
+              if (live) live.classList.remove('live');
+              ol.insertAdjacentHTML('beforeend', `<li>${esc(msg.text)}</li>`);
+            } else if (msg.type === 'progress' && ol) {
+              // one line that updates in place, like "Writing the chord chart… 12 chords so far"
+              let live = ol.querySelector('li.live');
+              if (!live) { live = document.createElement('li'); live.className = 'live'; ol.appendChild(live); }
+              live.textContent = msg.text;
             } else if (msg.type === 'error') { finished = true; showAiError(msg.message); }
             else if (msg.type === 'song') { finished = true; showAiSong(msg.song); }
           }
