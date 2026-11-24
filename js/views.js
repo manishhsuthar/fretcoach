@@ -236,7 +236,9 @@
     const cleanup = App.playerView(main, song, opts);
     if (song.custom) {
       const t = $('.p-titles', main);
-      if (t) t.insertAdjacentHTML('beforeend', `<a class="edit-link" href="#edit/${encodeURIComponent(song.id)}">Edit song</a>`);
+      const id = encodeURIComponent(song.id);
+      const tag = song.ai ? `<span class="ai-tag" title="${esc(song.ai.notes || '')}">AI chords · ${esc(song.ai.confidence || 'medium')} confidence</span>` : '';
+      if (t) t.insertAdjacentHTML('beforeend', `<p class="edit-links"><a class="edit-link" href="#edit/${id}">Edit song</a>${song.ai ? '' : ` · <a class="edit-link" href="#edit/${id}?ai=1">Doesn't sound right? Find the real chords with AI</a>`}${tag}</p>`);
     }
     return cleanup;
   }
