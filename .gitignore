@@ -3,3 +3,5 @@ node_modules/
 *.log
 .vscode/
 .idea/
+# your Claude API key lives here: never commit it
+.env
