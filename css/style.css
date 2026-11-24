@@ -455,12 +455,16 @@ button.seg:hover { background: var(--tint); }
 .ai-form { display: flex; gap: 10px; flex-wrap: wrap; }
 .ai-form input { flex: 1 1 260px; min-width: 0; font: 17px var(--font-body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
 .ai-form .btn:disabled { opacity: 0.55; cursor: progress; }
+.ai-engine { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 14px; margin: -4px 0 0; }
+.ai-engine > span { font: 700 12px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.ai-engine select { flex: 0 1 auto; max-width: 100%; min-width: 0; font: 14px var(--font-body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
 .ai-setup { display: grid; gap: 8px; padding: 12px 14px; border-radius: 10px; background: var(--bg); font-size: 15px; }
 .ai-setup ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
 .ai-progress { display: grid; gap: 8px; }
 .ai-prog-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ai-steps { margin: 0; padding-left: 20px; display: grid; gap: 3px; color: var(--muted); font-size: 15px; }
 .ai-steps li:last-child { color: var(--fg); font-weight: 700; }
+.ai-steps li.live { font-variant-numeric: tabular-nums; }
 .ai-error { color: var(--bad); font-weight: 700; }
 .ai-result { display: grid; gap: 12px; padding: 16px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); min-width: 0; }
 .ai-res-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
@@ -472,6 +476,8 @@ button.seg:hover { background: var(--tint); }
 .conf.medium { color: var(--accent-ink); background: color-mix(in srgb, var(--accent) 16%, transparent); }
 .conf.low { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
 .ai-notes { font-size: 15px; }
+.ai-madeby { font-size: 13px; color: var(--muted); }
+.ai-madeby.memory { color: var(--warn, var(--bad)); font-weight: 700; }
 .ai-sections { display: grid; gap: 8px; max-height: 300px; overflow: auto; padding-right: 4px; }
 .ai-sec { display: grid; grid-template-columns: minmax(90px, 150px) minmax(0, 1fr); gap: 10px; align-items: start; }
 .ai-sec > b { font-size: 14px; padding-top: 2px; }
