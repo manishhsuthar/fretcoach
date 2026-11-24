@@ -255,18 +255,31 @@ Walk with me, walk with me, down the road
 G        D          C        G
 Walk with me, we'll carry the load`;
 
-  function addView(main, editId) {
+  function addView(main, editId, query) {
     const editing = editId ? store.custom.find((s) => s.id === editId) : null;
+    if (editId && !editing) { location.hash = '#songs'; return; }
     const st = {
       tab: editing && editing.input === 'prog' ? 'prog' : 'paste',
       title: editing ? editing.title : '', artist: editing ? editing.artist || '' : '',
       beats: editing ? editing.beats : 4, bpm: editing ? editing.bpm : 80, capo: editing ? editing.capo || 0 : 0,
       strum: editing ? editing.strum : 'basic', raw: editing ? editing.raw || editing.sheet : '', prog: editing ? editing.prog || '' : '',
+      ai: editing ? editing.ai || null : null,
     };
+    const aiPrefill = editing ? `${editing.title}${editing.artist && editing.artist !== 'My song' ? ', ' + editing.artist : ''}` : '';
     main.innerHTML = `
     <a class="back" href="#songs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Songs</a>
     <div class="page-head"><div><h1>${editing ? 'Edit song' : 'Add your own song'}</h1>
-      <p class="lede">Copy the chords from any chord website or songbook and paste them below. Chords above the lyrics, or <code>[C]</code> inside the lyrics, both work.</p></div></div>
+      <p class="lede">Search for any song and let AI find its chords, or paste chords from a chord website yourself.</p></div></div>
+    <section class="card ai-find" aria-labelledby="aiTitle">
+      <div class="ai-intro">
+        <span class="ai-mark" aria-hidden="true">AI</span>
+        <div><h2 id="aiTitle">${editing ? 'Find the real chords' : "Find a song's chords"}</h2>
+        <p class="muted">Type the song and the artist. AI searches chord sites and guitar lessons, then gives you the chords in the right key, with the capo, the tempo and how long each chord lasts.</p></div>
+      </div>
+      <form class="ai-form" id="aiForm"><input id="aiQuery" type="search" autocomplete="off" placeholder="e.g. Let It Be, The Beatles" aria-label="Song name and artist" value="${esc(aiPrefill)}"><button class="btn primary" id="aiGo" type="submit">Find chords</button></form>
+      <div id="aiOut" aria-live="polite"></div>
+    </section>
+    <p class="or-line"><span>or paste the chords yourself</span></p>
     <div class="add-grid">
       <form id="addForm" class="card form" novalidate>
         <div class="field-row">
@@ -384,6 +397,7 @@ Walk with me, we'll carry the load`;
         capo, strum: fStrum.value, sheet: parsed.sheet, input: st.tab,
         raw: st.tab === 'paste' ? $('#fRaw', main).value : '', prog: st.tab === 'prog' ? $('#fProg', main).value : '',
       };
+      if (st.ai) song.ai = st.ai;
       if (editing) store.custom = store.custom.map((s) => (s.id === editing.id ? song : s));
       else store.custom.push(song);
       App.save();
@@ -391,6 +405,157 @@ Walk with me, we'll carry the load`;
       location.hash = '#song/' + encodeURIComponent(song.id);
     });
     preview();
+
+    // ------------------------------------------------------------- AI song finder
+    const ai = { ctrl: null, timer: 0, status: null, song: null, query: '', autostarted: false };
+    const aiOut = $('#aiOut', main);
+
+    function paintAiStatus() {
+      const s = ai.status;
+      if (!s || ai.ctrl || ai.song) return;
+      if (s.offline) {
+        aiOut.innerHTML = '<div class="ai-setup"><p>AI search needs FretCoach\'s own little server. Close this tab and start FretCoach with <code>./start.sh</code>.</p></div>';
+      } else if (!s.installed) {
+        aiOut.innerHTML = '<div class="ai-setup"><p>AI search isn\'t installed yet. Stop FretCoach and run <code>./start.sh</code> again while you\'re online. It installs AI search the first time.</p></div>';
+      } else if (!s.ai) {
+        aiOut.innerHTML = `<div class="ai-setup"><p><b>One-time setup:</b> AI search uses your own Claude API key.</p>
+          <ol><li>Create a key at <a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">platform.claude.com</a> (API keys).</li>
+          <li>In the FretCoach folder, make a file named <code>.env</code> with this line:<br><code>ANTHROPIC_API_KEY=paste-your-key-here</code></li>
+          <li>Stop FretCoach (Ctrl+C) and run <code>./start.sh</code> again.</li></ol>
+          <p class="muted">Each search uses a little API credit.</p></div>`;
+      } else {
+        aiOut.innerHTML = '<p class="hint">A search takes about a minute and uses a little Claude API credit.</p>';
+        if (query && query.get('ai') === '1' && !ai.autostarted && $('#aiQuery', main).value.trim()) {
+          ai.autostarted = true;
+          runSearch($('#aiQuery', main).value.trim());
+        }
+      }
+    }
+
+    fetch('/api/status').then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((s) => { ai.status = s; }, () => { ai.status = { offline: true }; })
+      .then(paintAiStatus);
+
+    function showAiError(message) {
+      aiOut.innerHTML = `<p class="ai-error" role="alert">${esc(message)}</p>`;
+    }
+
+    async function runSearch(q) {
+      if (ai.status && (ai.status.offline || !ai.status.ai)) { paintAiStatus(); return; }
+      if (ai.ctrl) ai.ctrl.abort();
+      const ctrl = new AbortController();
+      ai.ctrl = ctrl;
+      ai.song = null;
+      ai.query = q;
+      const t0 = Date.now();
+      aiOut.innerHTML = `<div class="ai-progress"><div class="ai-prog-head"><span class="pulse" aria-hidden="true"></span><b>Finding the chords for "${esc(q)}"</b><span class="muted tnum" id="aiTime">0 s</span><button type="button" class="btn small ghost" data-act="ai-cancel">Cancel</button></div>
+        <ol class="ai-steps" id="aiSteps"></ol><p class="hint">This usually takes 30–90 seconds.</p></div>`;
+      clearInterval(ai.timer);
+      ai.timer = setInterval(() => { const el = $('#aiTime', main); if (el) el.textContent = `${Math.round((Date.now() - t0) / 1000)} s`; }, 500);
+      $('#aiGo', main).disabled = true;
+      let finished = false;
+      try {
+        const res = await fetch('/api/find-song', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q }), signal: ctrl.signal,
+        });
+        if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = '';
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          let nl;
+          while ((nl = buf.indexOf('\n')) >= 0) {
+            const line = buf.slice(0, nl).trim();
+            buf = buf.slice(nl + 1);
+            if (!line) continue;
+            const msg = JSON.parse(line);
+            if (msg.type === 'status') {
+              const ol = $('#aiSteps', main);
+              if (ol) ol.insertAdjacentHTML('beforeend', `<li>${esc(msg.text)}</li>`);
+            } else if (msg.type === 'error') { finished = true; showAiError(msg.message); }
+            else if (msg.type === 'song') { finished = true; showAiSong(msg.song); }
+          }
+        }
+        if (!finished) showAiError('The search stopped before it finished. Try again.');
+      } catch (err) {
+        if (ctrl.signal.aborted) aiOut.innerHTML = '<p class="muted">Search cancelled.</p>';
+        else showAiError("Couldn't reach FretCoach's server. Is ./start.sh still running?");
+      } finally {
+        clearInterval(ai.timer);
+        if (ai.ctrl === ctrl) ai.ctrl = null;
+        const b = $('#aiGo', main);
+        if (b) b.disabled = false;
+      }
+    }
+
+    function showAiSong(song) {
+      if (!song.found) {
+        aiOut.innerHTML = `<div class="ai-result"><h3>I couldn't find chords for that song</h3>${song.notes ? `<p>${esc(song.notes)}</p>` : ''}<p class="hint">Try the exact title plus the artist's name.</p></div>`;
+        return;
+      }
+      ai.song = song;
+      const sheet = GT.aiSongToSheet(song);
+      const C = GT.compileSong({ sheet, beats: song.beats_per_bar });
+      const names = GT.chordsInSong({ sheet });
+      const minutes = C.totalBeats / song.bpm;
+      const strumName = (GT.strumFor(song.beats_per_bar, song.strum) || {}).name || song.strum;
+      const fmtBeats = (b) => (b === song.beats_per_bar ? '' : `<sup>${+b.toFixed(2)}</sup>`);
+      aiOut.innerHTML = `<div class="ai-result">
+        <div class="ai-res-head"><div><h3>${esc(song.title)}</h3><p class="muted">${esc(song.artist)}</p></div>
+          <span class="conf ${esc(song.confidence)}">${esc(song.confidence)} confidence</span></div>
+        <div class="ai-facts"><span>Key <b>${esc(song.key || '?')}</b></span><span>Capo <b>${song.capo || 'none'}</b></span><span><b>${song.bpm}</b> bpm</span><span><b>${song.beats_per_bar}/4</b></span><span>Strum <b>${esc(strumName)}</b></span><span><b>${C.steps.length}</b> chord changes · about ${Math.max(1, Math.round(minutes))} min</span></div>
+        <div class="pv-chords">${names.map((n) => { const v = GT.voicing(n); return `<span class="chip d${v ? v.difficulty : 3}">${esc(n)}</span>`; }).join('')}</div>
+        ${song.notes ? `<p class="ai-notes">${esc(song.notes)}</p>` : ''}
+        <div class="ai-sections">${song.sections.map((sec) => `<div class="ai-sec"><b>${esc(sec.name)}${sec.repeat > 1 ? ` ×${sec.repeat}` : ''}</b><span class="chips">${sec.chords.map((c) => `<span class="chip">${esc(c.chord)}${fmtBeats(c.beats)}</span>`).join('')}</span></div>`).join('')}</div>
+        <p class="hint">Small numbers are beats; chords without one last a full bar. Lyrics aren't included, for copyright reasons.</p>
+        ${song.sources.length ? `<p class="ai-sources">Based on: ${song.sources.map((u) => { let h = u; try { h = new URL(u).hostname.replace(/^www\./, ''); } catch (e) { /* keep url */ } return `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(h)}</a>`; }).join(' ')}</p>` : ''}
+        <div class="row wrap"><button type="button" class="btn primary" data-act="ai-save">${editing ? 'Replace the chords and save' : 'Save and practise'}</button><button type="button" class="btn" data-act="ai-use">Check it before saving</button></div>
+      </div>`;
+    }
+
+    function applyAiSong() {
+      const song = ai.song;
+      if (!song) return;
+      $('#fTitle', main).value = song.title || ai.query;
+      $('#fArtist', main).value = song.artist || '';
+      $('#fBeats', main).value = String(song.beats_per_bar);
+      st.strum = song.strum;
+      fillStrums();
+      $('#fBpm', main).value = song.bpm;
+      $('#fCapo', main).value = song.capo;
+      st.tab = 'paste';
+      $$('[data-tab]', main).forEach((x) => x.setAttribute('aria-selected', String(x.dataset.tab === 'paste')));
+      $$('[data-pane]', main).forEach((p) => { p.hidden = p.dataset.pane !== 'paste'; });
+      $('#fRaw', main).value = GT.aiSongToSheet(song);
+      st.ai = { query: ai.query, key: song.key, confidence: song.confidence, notes: song.notes, sources: song.sources };
+      preview();
+    }
+
+    $('#aiForm', main).addEventListener('submit', (e) => {
+      e.preventDefault();
+      const q = $('#aiQuery', main).value.trim();
+      if (q.length < 2) { $('#aiQuery', main).focus(); return; }
+      runSearch(q);
+    });
+    main.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-act]');
+      if (!a) return;
+      if (a.dataset.act === 'ai-cancel' && ai.ctrl) ai.ctrl.abort();
+      if (a.dataset.act === 'ai-use') {
+        applyAiSong();
+        $('#addForm', main).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        App.toast('Chords filled in below. Check them, then save.');
+      }
+      if (a.dataset.act === 'ai-save') {
+        applyAiSong();
+        $('#addForm', main).requestSubmit();
+      }
+    });
+
+    return () => { if (ai.ctrl) ai.ctrl.abort(); clearInterval(ai.timer); };
   }
 
   // =================================================================== CHORDS
@@ -944,7 +1109,7 @@ Walk with me, we'll carry the load`;
   // =================================================================== ROUTER
   const VIEWS = {
     home: homeView, learn: learnView, lesson: lessonView, exercise: exerciseView, songs: songsView, song: songView,
-    add: (m) => addView(m), edit: (m, id) => addView(m, id), chords: chordsView, 'exercise-chord': chordExerciseView,
+    add: (m, a, q) => addView(m, null, q), edit: (m, id, q) => addView(m, id, q), chords: chordsView, 'exercise-chord': chordExerciseView,
     tuner: tunerView, drills: drillsView, settings: settingsView,
     drill: (m, which) => (which === 'notes' ? notesDrill(m) : changesDrill(m)),
   };
