@@ -237,7 +237,7 @@
     if (song.custom) {
       const t = $('.p-titles', main);
       const id = encodeURIComponent(song.id);
-      const tag = song.ai ? `<span class="ai-tag" title="${esc(song.ai.notes || '')}">AI chords · ${esc(song.ai.confidence || 'medium')} confidence</span>` : '';
+      const tag = song.ai ? `<span class="ai-tag" title="${esc([song.ai.madeBy ? `Made by ${song.ai.madeBy}.` : '', song.ai.notes || ''].filter(Boolean).join(' '))}">AI chords · ${esc(song.ai.confidence || 'medium')} confidence</span>` : '';
       if (t) t.insertAdjacentHTML('beforeend', `<p class="edit-links"><a class="edit-link" href="#edit/${id}">Edit song</a>${song.ai ? '' : ` · <a class="edit-link" href="#edit/${id}?ai=1">Doesn't sound right? Find the real chords with AI</a>`}${tag}</p>`);
     }
     return cleanup;
@@ -557,6 +557,7 @@ Walk with me, we'll carry the load`;
         <div class="ai-facts"><span>Key <b>${esc(song.key || '?')}</b></span><span>Capo <b>${song.capo || 'none'}</b></span><span><b>${song.bpm}</b> bpm</span><span><b>${song.beats_per_bar}/4</b></span><span>Strum <b>${esc(strumName)}</b></span><span><b>${C.steps.length}</b> chord changes · about ${Math.max(1, Math.round(minutes))} min</span></div>
         <div class="pv-chords">${names.map((n) => { const v = GT.voicing(n); return `<span class="chip d${v ? v.difficulty : 3}">${esc(n)}</span>`; }).join('')}</div>
         ${song.notes ? `<p class="ai-notes">${esc(song.notes)}</p>` : ''}
+        ${song.madeBy ? `<p class="ai-madeby${song.fromMemory ? ' memory' : ''}">Made by ${esc(song.madeBy)}${song.fromMemory ? ' from memory, without web search: check it by ear' : song.sources.length ? `, from ${song.sources.length} chord page${song.sources.length > 1 ? 's' : ''}` : ''}</p>` : ''}
         <div class="ai-sections">${song.sections.map((sec) => `<div class="ai-sec"><b>${esc(sec.name)}${sec.repeat > 1 ? ` ×${sec.repeat}` : ''}</b><span class="chips">${sec.chords.map((c) => `<span class="chip">${esc(c.chord)}${fmtBeats(c.beats)}</span>`).join('')}</span></div>`).join('')}</div>
         <p class="hint">Small numbers are beats; chords without one last a full bar. Lyrics aren't included, for copyright reasons.</p>
         ${song.sources.length ? `<p class="ai-sources">Based on: ${song.sources.map((u) => { let h = u; try { h = new URL(u).hostname.replace(/^www\./, ''); } catch (e) { /* keep url */ } return `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(h)}</a>`; }).join(' ')}</p>` : ''}
@@ -578,7 +579,7 @@ Walk with me, we'll carry the load`;
       $$('[data-tab]', main).forEach((x) => x.setAttribute('aria-selected', String(x.dataset.tab === 'paste')));
       $$('[data-pane]', main).forEach((p) => { p.hidden = p.dataset.pane !== 'paste'; });
       $('#fRaw', main).value = GT.aiSongToSheet(song);
-      st.ai = { query: ai.query, key: song.key, confidence: song.confidence, notes: song.notes, sources: song.sources };
+      st.ai = { query: ai.query, key: song.key, confidence: song.confidence, notes: song.notes, sources: song.sources, madeBy: song.madeBy || '' };
       preview();
     }
 
