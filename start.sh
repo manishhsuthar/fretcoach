@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Starts FretCoach on http://localhost:8765 and opens it in your browser.
 # The browser only allows the microphone on localhost or https pages, so use this instead of double-clicking index.html.
-# With Node.js installed, this also turns on AI song search (needs a Claude API key in .env, see README).
+# With Node.js installed, this also turns on AI song search: free with Ollama, or paid with a Claude API key (see README).
 cd "$(dirname "$0")"
 PORT="${PORT:-8765}"
 URL="http://localhost:$PORT"

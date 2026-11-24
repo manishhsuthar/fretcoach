@@ -35,9 +35,9 @@ double-clicking `index.html`. Everything runs locally: no account, and no audio 
 
 **Songs → Add a song**, then either:
 
-- **Find it with AI**: type the song and artist. AI searches chord sites and guitar lessons, and returns
-  the chords in the right key, with the capo, tempo, strum pattern and how many beats each chord lasts, so
-  Play along matches the real song. Lyrics aren't included, for copyright reasons.
+- **Find it with AI**: type the song and artist. AI looks up the chords on chord sites and returns them in
+  the right key, with the capo, tempo, strum pattern and how many beats each chord lasts, so Play along
+  matches the real song. Lyrics aren't included, for copyright reasons.
 - **Paste it yourself** from any chord website. Chords written above the lyrics and `[C]inline` ChordPro
   both work, and so do section labels and `Capo 2` lines.
 
@@ -46,15 +46,46 @@ A pasted song that doesn't sound right? Open it and click **Find the real chords
 
 ### Turn on AI song search (one time)
 
-AI search runs Claude (model `claude-opus-5-5` with web search) on your own Claude API account, and
-needs [Node.js](https://nodejs.org) 20.12 or newer.
+AI search needs [Node.js](https://nodejs.org) 20.12 or newer, and one of these two AI engines. With both set
+up, you pick one on the Add song page.
+
+| | Ollama | Claude |
+|---|---|---|
+| Cost | Free | Paid: a little API credit per search |
+| Runs on | Your computer | Anthropic's servers |
+| Accuracy | Good with web search on; a rough guess without it | Best: researches the song, timing included |
+| Speed | 1 to 3 minutes on a laptop | About a minute |
+
+**Free: Ollama**
+
+1. Install [Ollama](https://ollama.com/download).
+2. Download a model (2.5 GB): `ollama pull qwen3:4b-instruct`. Any chat model works; small "instruct"
+   models are fastest.
+3. Run `./start.sh`. The Add song page finds Ollama on its own.
+
+#### Free web search for Ollama
+
+A small model on its own only remembers a few famous songs, and often gets those wrong. With web search,
+FretCoach searches chord sites, keeps just the chord lines, and the model turns them into a chart.
+
+1. Make a free account at [ollama.com](https://ollama.com) and create a key at
+   [ollama.com/settings/keys](https://ollama.com/settings/keys).
+2. Copy `.env.example` to `.env` (if you haven't yet) and paste the key after `OLLAMA_API_KEY=`.
+3. Restart `./start.sh`.
+
+Your song search goes to Ollama's web search. On Linux with an NVIDIA card, a CUDA build of Ollama is
+much faster (on Arch: `sudo pacman -S ollama-cuda`, then `sudo systemctl restart ollama`).
+
+**Most accurate, paid: Claude**
+
+Runs Claude (model `claude-opus-5-5`, with web search) on your own Claude API account.
 
 1. Create an API key at [platform.claude.com](https://platform.claude.com/settings/keys).
 2. Copy `.env.example` to `.env` in this folder and paste your key after `ANTHROPIC_API_KEY=`.
 3. Run `./start.sh`. The first run installs the Claude SDK (`npm install`).
 
-Each search uses a little API credit (web searches plus Claude's reading). `.env` is in `.gitignore`, so
-your key is never committed, and the key stays in the local server: the browser never sees it.
+`.env` is in `.gitignore`, so your keys are never committed, and they stay in the local server: the browser
+never sees them.
 
 ## Tips for good detection
 
@@ -71,4 +102,5 @@ voicings), `detect.js` (pitch and chord recognition), `audio.js` (synth, metrono
 and `views.js` (the app). Progress is saved in your browser's local storage.
 
 `server.js` is the local server: it serves the app on 127.0.0.1 only and runs the AI song finder
-(`POST /api/find-song`, which streams progress and the finished chart).
+(`POST /api/find-song`, which streams progress and the finished chart). The engines live in `server/`:
+`claude.js`, `ollama.js`, and `chart.js` (the chart format and the checks every chart passes).
