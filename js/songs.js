@@ -510,5 +510,31 @@ And it's [Am:3]been the [C:3]ruin of [D:3]many a poor [F:3]boy, and [Am:3]God, I
     return bars.filter(Boolean).join('\n');
   }
 
-  Object.assign(GT, { SONGS, LESSONS, STRUMS, strumFor, compileSong, chordsInSong, parsePasted, progressionToSheet, parseChordToken });
+  /**
+   * Turn an AI chord chart ({sections: [{name, repeat, chords: [{chord, beats}]}]}) into a sheet
+   * with one section label per pass and about four bars per line.
+   */
+  function aiSongToSheet(song) {
+    const bpb = song.beats_per_bar === 3 ? 3 : 4;
+    const lines = [];
+    (song.sections || []).forEach((sec) => {
+      const reps = Math.max(1, Math.min(8, sec.repeat || 1));
+      for (let r = 0; r < reps; r++) {
+        lines.push(`{c: ${sec.name}${reps > 1 ? ` (${r + 1} of ${reps})` : ''}}`);
+        let line = [];
+        let acc = 0;
+        (sec.chords || []).forEach((c) => {
+          const beats = c.beats > 0 ? c.beats : bpb;
+          line.push(`[${c.chord}:${+beats.toFixed(2)}]`);
+          acc += beats;
+          if (acc >= bpb * 4 - 1e-6) { lines.push(line.join(' ')); line = []; acc = 0; }
+        });
+        if (line.length) lines.push(line.join(' '));
+      }
+      lines.push('');
+    });
+    return lines.join('\n').trim();
+  }
+
+  Object.assign(GT, { SONGS, LESSONS, STRUMS, strumFor, compileSong, chordsInSong, parsePasted, progressionToSheet, parseChordToken, aiSongToSheet });
 })(typeof window !== 'undefined' ? window : globalThis);
