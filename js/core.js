@@ -13,6 +13,7 @@
   const DEFAULT_SETTINGS = {
     leftHanded: false, view: 'player', labels: 'finger', naming: 'letters', strictness: 'normal', octaveOk: true,
     micGain: 1, gate: 0.012, deviceId: '', guitarVol: 0.8, clickVol: 0.6, fullBarre: false, micWanted: false,
+    aiEngine: '',
   };
   function loadStore() {
     let data = null;

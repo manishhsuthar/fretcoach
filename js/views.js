@@ -276,9 +276,10 @@ Walk with me, we'll carry the load`;
       <div class="ai-intro">
         <span class="ai-mark" aria-hidden="true">AI</span>
         <div><h2 id="aiTitle">${editing ? 'Find the real chords' : "Find a song's chords"}</h2>
-        <p class="muted">Type the song and the artist. AI searches chord sites and guitar lessons, then gives you the chords in the right key, with the capo, the tempo and how long each chord lasts.</p></div>
+        <p class="muted">Type the song and the artist. AI finds its chords in the right key, with the capo, the tempo and how long each chord lasts.</p></div>
       </div>
       <form class="ai-form" id="aiForm"><input id="aiQuery" type="search" autocomplete="off" placeholder="e.g. Let It Be, The Beatles" aria-label="Song name and artist" value="${esc(aiPrefill)}"><button class="btn primary" id="aiGo" type="submit">Find chords</button></form>
+      <div id="aiEngine"></div>
       <div id="aiOut" aria-live="polite"></div>
     </section>
     <p class="or-line"><span>or paste the chords yourself</span></p>
@@ -412,21 +413,49 @@ Walk with me, we'll carry the load`;
     const ai = { ctrl: null, timer: 0, status: null, song: null, query: '', autostarted: false };
     const aiOut = $('#aiOut', main);
 
+    const engines = () => (ai.status && ai.status.engines) || [];
+    function currentEngine() {
+      const list = engines();
+      return list.find((e) => e.id === S.aiEngine) || list.find((e) => e.id === ai.status.preferred) || list[0] || null;
+    }
+    const engineName = (e) => (e.kind === 'claude' ? e.label || 'Claude' : e.model);
+    const engineDesc = (e) => (e.kind === 'claude' ? 'paid, searches the web' : `free, on this computer${e.web ? ', with web search' : ', no web search'}`);
+
+    // which AI runs the search: a picker when there's a choice
+    function paintEngine() {
+      const box = $('#aiEngine', main);
+      const list = engines();
+      const cur = currentEngine();
+      if (!cur) { box.innerHTML = ''; return; }
+      box.innerHTML = list.length > 1
+        ? `<label class="ai-engine"><span>AI</span><select id="aiEngineSel">${list.map((e) => `<option value="${esc(e.id)}" ${e.id === cur.id ? 'selected' : ''}>${esc(engineName(e))} (${engineDesc(e)})</option>`).join('')}</select></label>`
+        : `<p class="ai-engine muted">Using <b>${esc(engineName(cur))}</b> (${engineDesc(cur)})</p>`;
+    }
+
+    function setupSteps(s) {
+      const o = s.ollama || {};
+      const model = esc(o.suggested || 'qwen3:4b-instruct');
+      const free = o.running
+        ? `<li><b>Free, on this computer:</b> Ollama is running but has no model yet. In a terminal, run <code>ollama pull ${model}</code> (a 2.5 GB download), then click Check again.</li>`
+        : `<li><b>Free, on this computer:</b> install <a href="https://ollama.com/download" target="_blank" rel="noopener">Ollama</a>, then run <code>ollama pull ${model}</code> in a terminal (a 2.5 GB download).</li>`;
+      const paid = `<li><b>Most accurate, paid:</b> create a Claude API key at <a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">platform.claude.com</a>, put it in a file named <code>.env</code> in the FretCoach folder as <code>ANTHROPIC_API_KEY=your-key</code>, then restart <code>./start.sh</code>.</li>`;
+      return `<div class="ai-setup"><p><b>One-time setup.</b> Pick one:</p><ol>${free}${paid}</ol>
+        <button type="button" class="btn small" data-act="ai-recheck">Check again</button></div>`;
+    }
+
     function paintAiStatus() {
+      paintEngine();
       const s = ai.status;
       if (!s || ai.ctrl || ai.song) return;
+      const e = currentEngine();
       if (s.offline) {
         aiOut.innerHTML = '<div class="ai-setup"><p>AI search needs FretCoach\'s own little server. Close this tab and start FretCoach with <code>./start.sh</code>.</p></div>';
-      } else if (!s.installed) {
-        aiOut.innerHTML = '<div class="ai-setup"><p>AI search isn\'t installed yet. Stop FretCoach and run <code>./start.sh</code> again while you\'re online. It installs AI search the first time.</p></div>';
-      } else if (!s.ai) {
-        aiOut.innerHTML = `<div class="ai-setup"><p><b>One-time setup:</b> AI search uses your own Claude API key.</p>
-          <ol><li>Create a key at <a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">platform.claude.com</a> (API keys).</li>
-          <li>In the FretCoach folder, make a file named <code>.env</code> with this line:<br><code>ANTHROPIC_API_KEY=paste-your-key-here</code></li>
-          <li>Stop FretCoach (Ctrl+C) and run <code>./start.sh</code> again.</li></ol>
-          <p class="muted">Each search uses a little API credit.</p></div>`;
+      } else if (!e) {
+        aiOut.innerHTML = setupSteps(s);
       } else {
-        aiOut.innerHTML = '<p class="hint">A search takes about a minute and uses a little Claude API credit.</p>';
+        aiOut.innerHTML = e.kind === 'claude' ? '<p class="hint">A search takes about a minute and uses a little Claude API credit.</p>'
+          : e.web ? '<p class="hint">Free. A search takes 1 to 3 minutes on a laptop.</p>'
+            : '<p class="hint">Free, but without web search the model answers from memory and often gets chords wrong. For chords from real chord sheets, add a free Ollama key (README: "Free web search for Ollama").</p>';
         if (query && query.get('ai') === '1' && !ai.autostarted && $('#aiQuery', main).value.trim()) {
           ai.autostarted = true;
           runSearch($('#aiQuery', main).value.trim());
@@ -434,16 +463,26 @@ Walk with me, we'll carry the load`;
       }
     }
 
-    fetch('/api/status').then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((s) => { ai.status = s; }, () => { ai.status = { offline: true }; })
-      .then(paintAiStatus);
+    function loadAiStatus() {
+      return fetch('/api/status').then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+        .then((s) => { ai.status = s.engines ? s : { offline: true }; }, () => { ai.status = { offline: true }; })
+        .then(paintAiStatus);
+    }
+    loadAiStatus();
+    main.addEventListener('change', (e) => {
+      if (e.target.id !== 'aiEngineSel') return;
+      S.aiEngine = e.target.value;
+      App.save();
+      paintAiStatus();
+    });
 
     function showAiError(message) {
       aiOut.innerHTML = `<p class="ai-error" role="alert">${esc(message)}</p>`;
     }
 
     async function runSearch(q) {
-      if (ai.status && (ai.status.offline || !ai.status.ai)) { paintAiStatus(); return; }
+      const engine = ai.status && !ai.status.offline ? currentEngine() : null;
+      if (!engine) { paintAiStatus(); return; }
       if (ai.ctrl) ai.ctrl.abort();
       const ctrl = new AbortController();
       ai.ctrl = ctrl;
@@ -451,14 +490,14 @@ Walk with me, we'll carry the load`;
       ai.query = q;
       const t0 = Date.now();
       aiOut.innerHTML = `<div class="ai-progress"><div class="ai-prog-head"><span class="pulse" aria-hidden="true"></span><b>Finding the chords for "${esc(q)}"</b><span class="muted tnum" id="aiTime">0 s</span><button type="button" class="btn small ghost" data-act="ai-cancel">Cancel</button></div>
-        <ol class="ai-steps" id="aiSteps"></ol><p class="hint">This usually takes 30–90 seconds.</p></div>`;
+        <ol class="ai-steps" id="aiSteps"></ol><p class="hint">${engine.kind === 'claude' ? 'This usually takes 30–90 seconds.' : 'On a laptop this usually takes 1 to 3 minutes. The first search also loads the model.'}</p></div>`;
       clearInterval(ai.timer);
       ai.timer = setInterval(() => { const el = $('#aiTime', main); if (el) el.textContent = `${Math.round((Date.now() - t0) / 1000)} s`; }, 500);
       $('#aiGo', main).disabled = true;
       let finished = false;
       try {
         const res = await fetch('/api/find-song', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q }), signal: ctrl.signal,
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q, engine: engine.id }), signal: ctrl.signal,
         });
         if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
         const reader = res.body.getReader();
@@ -546,6 +585,7 @@ Walk with me, we'll carry the load`;
       const a = e.target.closest('[data-act]');
       if (!a) return;
       if (a.dataset.act === 'ai-cancel' && ai.ctrl) ai.ctrl.abort();
+      if (a.dataset.act === 'ai-recheck') { aiOut.innerHTML = '<p class="muted">Checking…</p>'; loadAiStatus(); }
       if (a.dataset.act === 'ai-use') {
         applyAiSong();
         $('#addForm', main).scrollIntoView({ behavior: 'smooth', block: 'start' });
