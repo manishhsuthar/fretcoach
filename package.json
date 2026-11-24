@@ -1,0 +1,15 @@
+{
+  "name": "fretcoach",
+  "private": true,
+  "description": "A guitar coach in your browser: finger positions for every chord, and a mic that checks what you play.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.7.0"
+  }
+}
